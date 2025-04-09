@@ -1,0 +1,5 @@
+<svg id="visual" viewBox="0 0 900 600" width="900" height="600" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"><rect x="0" y="0" width="900" height="600" fill="#FCFAFA"></rect>
+<path d="M0 500 C 150 550, 300 450, 450 500 C 600 550, 750 450, 900 500 L 900 600 L 0 600 Z" fill="#C8D3D5"/>
+<path d="M0 530 C 150 580, 300 480, 450 530 C 600 580, 750 480, 900 530 L 900 600 L 0 600 Z" fill="#FCFAFA"/>
+<path d="M0 560 C 150 610, 300 510, 450 560 C 600 610, 750 510, 900 560 L 900 600 L 0 600 Z" fill="#A4B8C4"/>
+</svg>

@@ -1,0 +1,23 @@
+@import './base.css';
+
+#app {
+  width: 100%;
+  height: 100;
+}
+
+/* input錯誤樣式 */
+.is-error .el-input , .is-error .el-textarea__inner{
+  border: 1px solid #f56c6c !important;
+  border-radius: 4px;
+}
+.is-error .el-input__wrapper , .is-error .el-textarea__inner, .is-error .el-select__wrapper{
+  border: 1px solid #f56c6c !important;
+  background-color: #fef0f0 !important;
+}
+
+/*隱藏數字輸入框的箭頭*/
+.el-input__inner::-webkit-inner-spin-button,
+.el-input__inner::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
