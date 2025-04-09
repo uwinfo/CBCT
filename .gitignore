@@ -1,6 +1,11 @@
 .vs/
-AdminApi/
+AdminApi/obj/
+AdminApi/bin/
 Core/obj/
 Core/bin/
 Su/bin/
 Su/obj/
+AdminApi/Properties/PublishProfiles/FolderProfile.pubxml
+AdminApi/Properties/PublishProfiles/FolderProfile.pubxml.user
+AdminApi/AdminApi.csproj
+AdminApi/AdminApi.csproj.user
