@@ -1,0 +1,3 @@
+﻿
+dotnet ef dbcontext scaffold Name=Config:Secrets:ConnectionStrings:DefaultConnectionString Npgsql.EntityFrameworkCore.PostgreSQL -o D:\Project\CBCT\source\Core\Ef -c CBCTContext --no-build --no-onconfiguring -s 'D:\Project\CBCT\source\AdminApi\AdminApi.csproj' -f --namespace Core.Ef
+
