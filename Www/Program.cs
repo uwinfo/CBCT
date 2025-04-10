@@ -1,5 +1,4 @@
-﻿global using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
+﻿using Microsoft.Extensions.FileProviders;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 
@@ -13,18 +12,22 @@ var config = builder.Configuration.GetSection("Config");
 config.Bind(appSettings);
 builder.Services.Configure<Core.Models.WwwSettings>(config); //注入 Core.Models.WwwSettings
 
-//var commonSettings = new Core.Models.WwwSettings.CommonClass();
 var commonConfig = builder.Configuration.GetSection("Config:Common");
 commonConfig.Bind(commonConfig);
 builder.Services.Configure<Core.Models.WwwSettings.CommonClass>(commonConfig); //注入 Core.Models.WwwSettings.CommonClass
 
-Core.Helpers.AuthHelper.Site = Core.Constants.Site.WWW;
 Core.Helpers.AuthHelper.SetAuthCookieName("sdhroe");
 
 Su.Wu.SetLogRoot(appSettings.Common.LogDirectory!);
 
+// 加載 secrets.json
+builder.Configuration.AddJsonFile("secrets.json", optional: true, reloadOnChange: true);
+var secretSettings = new Core.Models.SecretSettings();
+// 綁定整個 Config 區段
+config.Bind(secretSettings);
+builder.Services.Configure<Core.Models.SecretSettings>(builder.Configuration.GetSection("Config"));
 //注入 DBC 設定
-string pgDbc = appSettings.Secrets.ConnectionStrings!.DefaultConnectionString!;
+string pgDbc = secretSettings.Secrets.ConnectionStrings!.DefaultConnectionString!;
 Core.Ef.CBCTContext.SetDbc(pgDbc);
 Su.PgSql.AddDbc(Core.Constants.DbIds.CBCT, pgDbc);
 Su.PgSql.DefaultDbId = Core.Constants.DbIds.CBCT;
@@ -33,8 +36,8 @@ Su.PgSqlCache.StartUpdateTableCache();
 System.Threading.Thread.Sleep(200); //等待建立暫存
 
 //注入 AWS SES 的設定
-Core.Helpers.EmailHelper._senderInfo = appSettings.SenderInfo;
-Core.Helpers.EmailHelper._serverInfo = appSettings.AWS_SES;
+Core.Helpers.EmailHelper._senderInfo = secretSettings.SenderInfo;
+Core.Helpers.EmailHelper._serverInfo = secretSettings.AWS_SES;
 
 //允許這些網址 Cross.(Develope mode 開啟)
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -79,7 +82,7 @@ builder.Services
 // 註冊 Swagger
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "康定前台 API", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "CBCT Web API", Version = "v1" });
 
     //多個 Project, 每一個 xmldocument 都要載入
     List<string> xmlFiles = Directory.GetFiles(AppContext.BaseDirectory, "*.xml", SearchOption.TopDirectoryOnly).ToList();
@@ -97,7 +100,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 //不要注入 DbContext, 在 Controller 不可使用 DbContext，以保証必需使用 helper 才能存取資料庫
-//builder.Services.AddDbContext<Core.Ef.ContinEcContext>(options => options.UseNpgsql(appSettings.Secrets.ConnectionStrings.DefaultConnectionString!));
+//builder.Services.AddDbContext<Core.Ef.CBCTContext>(options => options.UseNpgsql(secretSettings.Secrets.ConnectionStrings.DefaultConnectionString!));
 
 builder.Services.AddMvcCore().AddApiExplorer();
 builder.Services.AddDistributedMemoryCache();
@@ -159,5 +162,5 @@ void InitSu(IApplicationBuilder app, IWebHostEnvironment env)
     Su.Mail.IsSendWithGmail = true;
 
     //不可更改，更改後會造成舊的 cookie 無法解密
-    Su.Encryption.SetCookieEncryptKeyAndIv(appSettings.Secrets.CookieKey, appSettings.Secrets.CookieIv);
+    Su.Encryption.SetCookieEncryptKeyAndIv(secretSettings.Secrets.CookieKey, secretSettings.Secrets.CookieIv);
 }

@@ -7,7 +7,6 @@ AdminApi/obj/
 AdminApi/bin/
 AdminApi/Properties/PublishProfiles/FolderProfile.pubxml
 AdminApi/Properties/PublishProfiles/FolderProfile.pubxml.user
-AdminApi/AdminApi.csproj
 AdminApi/AdminApi.csproj.user
 admin-front/localhost.pem
 admin-front/localhost-key.pem
@@ -15,5 +14,6 @@ Www/bin/
 Www/obj/
 Www/Properties/PublishProfiles/FolderProfile.pubxml
 Www/Properties/PublishProfiles/FolderProfile.pubxml.user
-Www/Www.csproj
 Www/Www.csproj.user
+AdminApi/secrets.json
+Www/secrets.json

@@ -17,14 +17,19 @@ var commonConfig = builder.Configuration.GetSection("Config:Common");
 commonConfig.Bind(commonConfig);
 builder.Services.Configure<Core.Models.AdminAppSettings.CommonClass>(commonConfig); //注入 Core.Models.AdminAppSettings.CommonClass
 
-Core.Helpers.AuthHelper.Site = Core.Constants.Site.ADMIN;
 Core.Helpers.AuthHelper.SetAuthCookieName("ibysjd");
 
 Core.Constants.Env.SetAdminCommonSettings(appSettings.Common);
 Su.Wu.SetLogRoot(appSettings.Common.LogDirectory!);
 
+// 加載 secrets.json
+builder.Configuration.AddJsonFile("secrets.json", optional: true, reloadOnChange: true);
+var secretSettings = new Core.Models.SecretSettings();
+// 綁定整個 Config 區段
+config.Bind(secretSettings);
+builder.Services.Configure<Core.Models.SecretSettings>(builder.Configuration.GetSection("Config"));
 //注入 DBC 設定
-string pgDbc = appSettings.Secrets.ConnectionStrings!.DefaultConnectionString!;
+string pgDbc = secretSettings.Secrets.ConnectionStrings!.DefaultConnectionString!;
 Core.Ef.CBCTContext.SetDbc(pgDbc);
 Su.PgSql.AddDbc(Core.Constants.DbIds.CBCT, pgDbc);
 Su.PgSql.DefaultDbId = Core.Constants.DbIds.CBCT;
@@ -33,8 +38,8 @@ Su.PgSqlCache.StartUpdateTableCache();
 System.Threading.Thread.Sleep(200); //等待建立暫存
 
 //注入 AWS SES 的設定
-Core.Helpers.EmailHelper._senderInfo = appSettings.SenderInfo;
-Core.Helpers.EmailHelper._serverInfo = appSettings.AWS_SES;
+Core.Helpers.EmailHelper._senderInfo = secretSettings.SenderInfo;
+Core.Helpers.EmailHelper._serverInfo = secretSettings.AWS_SES;
 
 //允許這些網址 Cross.(Develope mode 開啟)
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -97,7 +102,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 //注入 DbContext
-builder.Services.AddDbContext<Core.Ef.CBCTContext>(options => options.UseNpgsql(appSettings.Secrets.ConnectionStrings.DefaultConnectionString!));
+builder.Services.AddDbContext<Core.Ef.CBCTContext>(options => options.UseNpgsql(secretSettings.Secrets.ConnectionStrings.DefaultConnectionString!));
 builder.Services.AddMvcCore().AddApiExplorer();
 builder.Services.AddDistributedMemoryCache();
 
@@ -174,5 +179,5 @@ void InitSu(IApplicationBuilder app, IWebHostEnvironment env)
     Su.Mail.IsSendWithGmail = true;
 
     //不可更改，更改後會造成舊的 cookie 無法解密
-    Su.Encryption.SetCookieEncryptKeyAndIv(appSettings.Secrets.CookieKey, appSettings.Secrets.CookieIv);
+    Su.Encryption.SetCookieEncryptKeyAndIv(secretSettings.Secrets.CookieKey, secretSettings.Secrets.CookieIv);
 }
