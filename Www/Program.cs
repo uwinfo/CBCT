@@ -21,6 +21,9 @@ builder.Services.Configure<Core.Models.WwwSettings.CommonClass>(commonConfig); /
 Core.Helpers.AuthHelper.Site = Core.Constants.Site.WWW;
 Core.Helpers.AuthHelper.SetAuthCookieName("sdhroe");
 
+Su.Wu.SetLogRoot(appSettings.Common.LogDirectory!);
+
+//注入 DBC 設定
 string pgDbc = appSettings.Secrets.ConnectionStrings!.DefaultConnectionString!;
 Core.Ef.CBCTContext.SetDbc(pgDbc);
 Su.PgSql.AddDbc(Core.Constants.DbIds.CBCT, pgDbc);
@@ -29,7 +32,9 @@ Su.PgSqlCache.AddMonitoredDb(Su.PgSql.DefaultDbId);
 Su.PgSqlCache.StartUpdateTableCache();
 System.Threading.Thread.Sleep(200); //等待建立暫存
 
-Su.Wu.SetLogRoot(appSettings.Common.LogDirectory!);
+//注入 AWS SES 的設定
+Core.Helpers.EmailHelper._senderInfo = appSettings.SenderInfo;
+Core.Helpers.EmailHelper._serverInfo = appSettings.AWS_SES;
 
 //允許這些網址 Cross.(Develope mode 開啟)
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";

@@ -34,6 +34,7 @@ namespace SystemAdmin.AdminApiController
         /// <returns></returns>
         [Route("get-otp-qrcode-image")]
         [HttpGet]
+        [AddPermission(AdminPermission.UnLimited)]
         public ActionResult<dynamic> GetOtpQrcodeImage([FromQuery] string uid, [FromQuery] string otpConfirm)
         {
             string otpQRcode = AdminUserHelper.GetManagerbyOtpConfirm(_dbContext,
@@ -66,7 +67,6 @@ namespace SystemAdmin.AdminApiController
 
             var otpConfirm = AdminUserHelper.UpadteOtpConfirm(_dbContext, admin.Uid);
 
-            var from = "bike@bike.idv.tw";
             var to = admin.Email;
             var subject = "OTP 驗證碼";
 
@@ -77,10 +77,10 @@ namespace SystemAdmin.AdminApiController
             }
 
             var url = $"{baseUrl}/get-otp?uid={admin.Uid.UrlEncode()}&otpConfirm={otpConfirm.UrlEncode()}";
-            var body = $"請使用 Google Authenticator APP 進行驗證，點擊以下連結：<a href='{url}'>連結</a><br />" +
+            var mailBody = $"請使用 Google Authenticator APP 進行驗證，點擊以下連結：<a href='{url}'>連結</a><br />" +
                 $"注意，開啟連結後，舊的動態驗証碼會自動失效。";
 
-            Core.Helpers.EmailHelper.SendMailWithAmazonSES(to, from, subject, body, isBodyHtml: true);
+            Core.Helpers.EmailHelper.SendMailWithAmazonSES(to, subject, mailBody, isBodyHtml: true);
 
             return true;
         }

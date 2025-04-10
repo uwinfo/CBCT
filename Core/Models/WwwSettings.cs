@@ -3,6 +3,8 @@
     public class WwwSettings
     {
         public SecretsClass Secrets { get; set; }
+        public EmailSender.SenderInfo SenderInfo { get; set; }
+        public EmailSender.ServerInfo AWS_SES { get; set; }
         public CommonClass Common { get; set; }
 
         public class SecretsClass

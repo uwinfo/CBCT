@@ -1,79 +1,37 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Mail;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections;
 
 namespace Core.Helpers
 {
     public class EmailHelper
     {
-        public static string AmazonSesSettings = "email-smtp.us-west-2.amazonaws.com;AKIAWWF7Z7VSVEXBAQ6P;BAegtt9rmKomwca5T6nFW5kQcwQ1o5bbYGNZ5kQQiU28";  // 緯中的 SES，測試專用，不可用來發送電子報
+        public static Core.Models.EmailSender.SenderInfo _senderInfo;
+        public static Core.Models.EmailSender.ServerInfo _serverInfo;
 
-        public static bool SendMailWithAmazonSES(string toMails, string fromMail, string subject, string body, string cc = "", string bcc = "",
-            bool isBodyHtml = false, System.Text.Encoding bodyEncoding = null, System.Net.Mail.MailPriority priority = System.Net.Mail.MailPriority.Normal,
-            string pathFileName = "", ArrayList alPathFileName = null, string returnReceipt = "", Hashtable newAttachmentFilenames = null,
-            int emailTypeId = 1, bool isThrowException = false, bool isSkipLog = false)
+        public static bool SendMailWithAmazonSES(string toMails, string subject, string body, 
+            bool isBodyHtml = false, System.Text.Encoding? bodyEncoding = null, System.Net.Mail.MailPriority priority = System.Net.Mail.MailPriority.Normal,
+            string pathFileName = "", ArrayList? alPathFileName = null, string returnReceipt = "", Hashtable? newAttachmentFilenames = null,
+            int emailTypeId = 1, bool isThrowException = false, bool isSkipLog = false,
+            bool CCSender = false, bool BCCSender = false)
         {
-            string[] SESParams = AmazonSesSettings.Trim().Split(';'); //DB.SysConfig.GetSysConfig("AmazonSES").Trim().Split(';');
-            // Amazon SES SMTP host name. This example uses the US West (Oregon) region.
-            //const String HOST = "email-smtp.us-west-1.amazonaws.com";
-            String HOST = SESParams[0];
-
-            // Supply your SMTP credentials below. Note that your SMTP credentials are different from your AWS credentials.
-            //const String SMTP_USERNAME = "AKIAJTQ35NEV2UJLVE3A";  // Replace with your SMTP username. 
-            //const String SMTP_PASSWORD = "AuT2yoddKIrARlVwbh9h5d7j0jw/R2r2Hw9oVz07gbEM";  // Replace with your SMTP password.
-            String SMTP_USERNAME = SESParams[1];
-            String SMTP_PASSWORD = SESParams[2];
-
-            // The port you will connect to on the Amazon SES SMTP endpoint. We are choosing port 587 because we will use
-            // STARTTLS to encrypt the connection.
-            const int PORT = 587;
-
             bool res = true;
 
-            // Create an SMTP client with the specified host name and port.
-            using (System.Net.Mail.SmtpClient client = new System.Net.Mail.SmtpClient(HOST, PORT))
+            using (System.Net.Mail.SmtpClient client = new System.Net.Mail.SmtpClient(_serverInfo.Host, _serverInfo.Port))
             {
-                // Create a network credential with your SMTP user name and password.
-                client.Credentials = new System.Net.NetworkCredential(SMTP_USERNAME, SMTP_PASSWORD);
+                client.Credentials = new System.Net.NetworkCredential(_serverInfo.Username, _serverInfo.Password);
 
-                // Use SSL when accessing Amazon SES. The SMTP session will begin on an unencrypted connection, and then 
-                // the client will issue a STARTTLS command to upgrade to an encrypted connection using SSL.
                 client.EnableSsl = true;
 
-                SendMail(toMails, fromMail, subject, body, cc, isBodyHtml, bodyEncoding, client, bcc, priority, pathFileName, alPathFileName, returnReceipt, newAttachmentFilenames);
+                SendMail(toMails, subject, body, client, isBodyHtml, bodyEncoding, priority, pathFileName, alPathFileName, returnReceipt, newAttachmentFilenames, CCSender, BCCSender);
             }
 
             return res;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ToMails"></param>
-        /// <param name="FromMail"></param>
-        /// <param name="Subject"></param>
-        /// <param name="Body"></param>
-        /// <param name="CC"></param>
-        /// <param name="IsBodyHtml"></param>
-        /// <param name="BodyEncoding">預設是 utf8</param>
-        /// <param name="Smtp"></param>
-        /// <param name="BCC"></param>
-        /// <param name="Priority"></param>
-        /// <param name="PathFileName"></param>
-        /// <param name="alPathFileName"></param>
-        /// <param name="ReturnReceipt"></param>
-        /// <param name="htNewAttachmentFilename"></param>
-        /// <remarks></remarks>
-        public static void SendMail(string ToMails, string FromMail, string Subject, string Body,
-            string CC = "", bool IsBodyHtml = false, System.Text.Encoding BodyEncoding = null,
-            System.Net.Mail.SmtpClient Smtp = null, string BCC = "",
+        public static void SendMail(string ToMails, string Subject, string Body, System.Net.Mail.SmtpClient Smtp,
+            bool IsBodyHtml = false, System.Text.Encoding? BodyEncoding = null,
             System.Net.Mail.MailPriority Priority = System.Net.Mail.MailPriority.Normal,
-            string PathFileName = "", ArrayList alPathFileName = null, string ReturnReceipt = "",
-            Hashtable htNewAttachmentFilename = null)
+            string PathFileName = "", ArrayList? alPathFileName = null, string ReturnReceipt = "",
+            Hashtable? htNewAttachmentFilename = null, bool CCSender = false, bool BCCSender = false)
         {
             ToMails = ToMails.Replace("\r", "").Replace("\n", "");
 
@@ -81,9 +39,9 @@ namespace Core.Helpers
 
             M.IsBodyHtml = IsBodyHtml;
 
-            M.From = new MailAddress(FromMail);
+            M.From = new System.Net.Mail.MailAddress(_senderInfo.Email);
 
-            AddMailAddress(M, ToMails, CC, BCC);
+            AddMailAddress(M, ToMails, CCSender, BCCSender);
 
             M.Subject = Subject.Replace("\r\n", ""); // 主旨有換行的動作，會有error, Reiko, 2011/07/07
 
@@ -96,26 +54,27 @@ namespace Core.Helpers
 
             M.Priority = Priority;
 
-            if (ReturnReceipt.Length > 0)
-                M.Headers.Add("Disposition-Notification-To", ReturnReceipt);
+            if (ReturnReceipt.Length > 0) M.Headers.Add("Disposition-Notification-To", ReturnReceipt);
 
-
-            if (PathFileName.Length > 0)
-                M.Attachments.Add(new Attachment(PathFileName));
+            if (PathFileName.Length > 0) M.Attachments.Add(new System.Net.Mail.Attachment(PathFileName));
 
             if (alPathFileName != null)
             {
                 foreach (string File in alPathFileName)
                 {
-                    Attachment oA = new Attachment(File);
+                    System.Net.Mail.Attachment oA = new System.Net.Mail.Attachment(File);
                     if (htNewAttachmentFilename != null && htNewAttachmentFilename[File] != null)
                     {
                         oA.Name = (string)htNewAttachmentFilename[File];
 
                         if (BodyEncoding == null)
+                        {
                             oA.NameEncoding = System.Text.Encoding.UTF8; // 預設用 UTF8
+                        }
                         else
+                        {
                             oA.NameEncoding = BodyEncoding;
+                        }
                     }
                     M.Attachments.Add(oA);
                 }
@@ -134,7 +93,7 @@ namespace Core.Helpers
             M.Dispose();
         }
 
-        public static void AddMailAddress(System.Net.Mail.MailMessage M, string ToMails, string CC, string BCC)
+        public static void AddMailAddress(System.Net.Mail.MailMessage M, string ToMails, bool CCSender = false, bool BCCSender = false)
         {
             string[] arrTo = ToMails.Replace(",", ";").Split(';');
             foreach (string addrTo in arrTo)
@@ -143,48 +102,47 @@ namespace Core.Helpers
                 {
                     try
                     {
-                        M.To.Add(new MailAddress(addrTo.Trim()));
+                        M.To.Add(new System.Net.Mail.MailAddress(addrTo.Trim()));
                     }
                     catch (Exception ex)
                     {
-                        throw new Exception("AddMailAddress Error For '" + addrTo + "', EX: " + ex.ToString());
+                        throw new Exception("toMails AddMailAddress Error For '" + addrTo + "', EX: " + ex.ToString());
                     }
                 }
             }
 
-            if (CC.Length > 0)
+            if (CCSender && _senderInfo.CCEmails.Trim() != string.Empty)
             {
-                string[] arrMails = CC.Replace(",", ";").Split(';');
-                foreach (string addrTo in arrMails)
+                foreach (string mail in _senderInfo.CCEmails.Split(';'))
                 {
-                    if (addrTo.Trim().Length > 0)
+                    if (mail.Trim().Length > 0)
                     {
                         try
                         {
-                            M.CC.Add(new MailAddress(addrTo.Trim()));
+                            M.CC.Add(new System.Net.Mail.MailAddress(mail.Trim()));
+
                         }
                         catch (Exception ex)
                         {
-                            throw new Exception("AddMailAddress Error For '" + addrTo + "', EX: " + ex.ToString());
+                            throw new Exception("CC AddMailAddress Error For '" + mail + "', EX: " + ex.ToString());
                         }
                     }
                 }
             }
 
-            if (BCC.Length > 0)
+            if (BCCSender && _senderInfo.BCCEmails.Trim() != string.Empty)
             {
-                string[] arrMails = BCC.Replace(",", ";").Split(';');
-                foreach (string addrTo in arrMails)
+                foreach (string mail in _senderInfo.BCCEmails.Split(';'))
                 {
-                    if (addrTo.Trim().Length > 0)
+                    if (mail.Trim().Length > 0)
                     {
                         try
                         {
-                            M.Bcc.Add(new MailAddress(addrTo.Trim()));
+                            M.Bcc.Add(new System.Net.Mail.MailAddress(mail.Trim()));
                         }
                         catch (Exception ex)
                         {
-                            throw new Exception("AddMailAddress Error For '" + addrTo + "', EX: " + ex.ToString());
+                            throw new Exception("BCC AddMailAddress Error For '" + mail + "', EX: " + ex.ToString());
                         }
                     }
                 }
