@@ -1,20 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using SystemAdmin.AdminApiController;
 
-namespace AdminApi.Controllers
+namespace AdminApi
 {
     /// <summary>
     /// 取得通用資料(登入即可存取，需權限控管的資料請勿放在這裡)
     /// </summary>
     [Route("universal")]
-    [ApiController]
     [AddPermission(Core.Constants.AdminPermission.Login)]
-    public class UniversalController : AdminApiControllerBase
+    public class UniversalController : BaseApiController
     {
-        public UniversalController(IOptions<Core.Models.AdminAppSettings> appSettings, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext) : base(appSettings, env, CBCTContext)
+        public UniversalController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext)
+            : base(commonClass, env, CBCTContext)
         {
         }
+
 
         ///// <summary>
         ///// 商品選項 (autocomplete使用)
@@ -172,5 +172,15 @@ namespace AdminApi.Controllers
         //        .Take(top);
         //    return option;
         //}
+
+
+
+        [Route("send-mail")]
+        [HttpPost]
+        public dynamic? SendMailAsync(string toMail, string subject, string mailBody)
+        {
+            Core.Helpers.EmailHelper.SendMailWithAmazonSES(toMail, subject, mailBody);
+            return Ok();
+        }
     }
 }

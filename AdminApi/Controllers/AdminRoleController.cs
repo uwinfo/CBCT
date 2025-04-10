@@ -1,23 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using SystemAdmin.AdminApiController;
 using System.Net;
 using Core.Helpers;
 using Su;
 
-namespace AdminApi.Controllers
+namespace AdminApi
 {
     /// <summary>
     /// 角色管理
     /// </summary>
-    /// <param name="appSettings"></param>
-    /// <param name="env"></param>
-    /// <param name="CBCTContext"></param>
     [Route("admin-role")]
-    [ApiController]
     [AddPermission(Core.Constants.AdminPermission.Admin)]
-    public class AdminRoleController(IOptions<Core.Models.AdminAppSettings> appSettings, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext) : AdminApiControllerBase(appSettings, env, CBCTContext)
+    public class AdminRoleController : BaseApiController
     {
+        public AdminRoleController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext)
+            : base(commonClass, env, CBCTContext)
+        {
+        }
+
         /// <summary>
         /// 取得 Role 清單
         /// </summary>
@@ -69,7 +69,7 @@ namespace AdminApi.Controllers
             ex.TryThrowValidationException();
 
             dto.Name = dto.Name!.Trim();
-            string adminUid = Core.Helpers.AuthHelper.AdminUserUid!;
+            string adminUid = Core.Helpers.AuthHelper.LoginUid!;
             Core.Ef.AdminRole? entity;
             if (string.IsNullOrEmpty(dto.Uid))
             {
@@ -118,8 +118,8 @@ namespace AdminApi.Controllers
                             PermissionUid = permissionList.Where(x => x.Code == permission).First().Uid,
                             CreatedAt = DateTime.Now,
                             ModifiedAt = DateTime.Now,
-                            CreatorUid = AuthHelper.AdminUserUid!,
-                            ModifierUid = AuthHelper.AdminUserUid!,
+                            CreatorUid = AuthHelper.LoginUid!,
+                            ModifierUid = AuthHelper.LoginUid!,
                         };
                         _dbContext.Add(menuPermission);
                     }
@@ -147,8 +147,6 @@ namespace AdminApi.Controllers
 
             entity.DeletedAt = DateTime.Now;
             _dbContext.SaveChanges();
-
-            //Core.DataService.RoleDataService.RemoveRoleCache();
         }
     }
 }

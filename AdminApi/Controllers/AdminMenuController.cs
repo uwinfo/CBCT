@@ -1,24 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using SystemAdmin.AdminApiController;
 using Core.Constants;
 using Core.Helpers;
 using System.Net;
 using System.Data;
 using Su;
+using Microsoft.EntityFrameworkCore;
 
-namespace AdminApi.Controllers
+namespace AdminApi
 {
     /// <summary>
     /// 後台目錄管理
     /// </summary>
-    /// <param name="appSettings"></param>
-    /// <param name="env"></param>
-    /// <param name="CBCTContext"></param>
     [Route("admin-menu")]
-    [ApiController]
-    public class AdminMenuController(IOptions<Core.Models.AdminAppSettings> appSettings, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext) : AdminApiControllerBase(appSettings, env, CBCTContext)
+    public class AdminMenuController : BaseApiController
     {
+        public AdminMenuController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext)
+            : base(commonClass, env, CBCTContext)
+        {
+        }
+
         /// <summary>
         /// 取得 Menu 清單
         /// </summary>
@@ -36,11 +37,44 @@ namespace AdminApi.Controllers
         /// <returns></returns>
         [HttpGet("login-user-menu")]
         [AddPermission(AdminPermission.Login)]
-        public List<Core.Dtos.MenuForClient> GetAllMenusWithPermission()
+        public List<Core.Dtos.MenuForClient> GetUserMenusWithPermission()
         {
             // 這是for編輯  所以先清除cache
-            Core.Helpers.MenuHelper.RemoveMenuCache();
-            return Core.Helpers.MenuHelper.GetMenuWithCache(_dbContext);
+            //Core.Helpers.MenuHelper.RemoveMenuCache();
+            //return Core.Helpers.MenuHelper.GetMenuWithCache(_dbContext);
+            var menuList = new List<Core.Dtos.MenuForClient>();
+
+            var userPermissions = AuthHelper.AdminPermissions;
+            if (userPermissions != null)
+            {
+                var permissions = _dbContext.AdminPermissions.AsNoTracking()
+                    .Where(x => x.DeletedAt == null && userPermissions.Select(x => x.ToString()).Contains(x.Code))
+                    .Select(x => new { x.Uid, x.Code })
+                    .ToList();
+
+                var menus = _dbContext.AdminMenus.AsNoTracking()
+                    .Where(x => x.DeletedAt == null &&
+                                    (x.PermissionUid == null ||
+                                        userPermissions.Contains(AdminPermission.Admin) ||
+                                        (permissions == null || permissions.Select(p => p.Uid).Contains(x.PermissionUid)))
+                    ).OrderBy(x => x.Sort)
+                    .ToList();
+
+                if (menus != null && menus.Count > 0)
+                {
+                    menuList = menus
+                        .Select(menu => new Core.Dtos.MenuForClient
+                        {
+                            Id = menu.Uid,
+                            Text = menu.Name,
+                            Link = menu.Link,
+                            Parent = menu.ParentUid,
+                            Sort = menu.Sort,
+                        }).ToList();
+                }
+            }
+
+            return menuList;
         }
 
         /// <summary>
@@ -56,19 +90,14 @@ namespace AdminApi.Controllers
 
             var ret = menu.CopyTo<Core.Dtos.AdminMenuDto>();
 
-            var permissions = _dbContext.AdminPermissions.Join(
-                            _dbContext.AdminMenuPermissions,
-                            permission => permission.Uid,
-                            adminMenuPermission => adminMenuPermission.PermissionUid,
-                            (permission, adminMenuPermission) => new
-                            {
-                                permission.Code,
-                                adminMenuPermission.AdminMenuUid,
-                                PdeletedAt = permission.DeletedAt,
-                                MPdeletedAt = adminMenuPermission.DeletedAt
-                            }).Where(x => x.PdeletedAt == null && x.MPdeletedAt == null && x.AdminMenuUid == uid);
-
-            ret.Permissions = permissions.Select(x => x.Code).ToOneString(",");
+            if (menu.PermissionUid != null && menu.PermissionUid.Length > 0)
+            {
+                var permission = _dbContext.AdminPermissions.FirstOrDefault(x => x.DeletedAt == null && x.Uid == menu.PermissionUid);
+                if (permission != null)
+                {
+                    ret.PermissionDesc = permission.Description + " " + permission.Code;
+                }
+            }
 
             return ret;
         }
@@ -96,7 +125,7 @@ namespace AdminApi.Controllers
             }
             ex.TryThrowValidationException();
 
-            string adminUid = Core.Helpers.AuthHelper.AdminUserUid!;
+            string adminUid = Core.Helpers.AuthHelper.LoginUid!;
 
             Core.Ef.AdminMenu? entity;
             if (string.IsNullOrEmpty(dto.Uid))
@@ -122,42 +151,22 @@ namespace AdminApi.Controllers
             entity.ModifiedAt = DateTime.Now;
             entity.ModifierUid = adminUid;
 
+            if (dto.PermissionUid != null && dto.PermissionUid.Length > 0)
+            {
+                var permission = _dbContext.AdminPermissions.FirstOrDefault(x => x.DeletedAt == null && x.Uid == dto.PermissionUid);
+                if (permission != null)
+                {
+                    entity.PermissionUid = permission.Uid;
+                }
+            }
+
             if (string.IsNullOrEmpty(dto.Uid))
             {
                 _dbContext.AdminMenus.Add(entity);
             }
             _dbContext.SaveChanges();
 
-            var permissionList = _dbContext.AdminPermissions.AsNoTracking().ToList();
-            using (var scope = new System.Transactions.TransactionScope())
-            {
-                if (dto.Permissions != null)
-                {
-                    // 此系統的 MenuPermission.DeletedAt 不需要 直接珊
-                    // 所屬群組權限全部刪除再新增
-                    var permissions = dto.Permissions.Split(',');
-                    _dbContext.AdminMenuPermissions.Where(x => x.AdminMenuUid == entity.Uid).ExecuteDelete();
-                    foreach (string permission in permissions)
-                    {
-                        if (!permissionList.Where(x => x.Code == permission).Any()) continue;
-                        Core.Ef.AdminMenuPermission menuPermission = new()
-                        {
-                            AdminMenuUid = entity.Uid,
-                            PermissionUid = permissionList.Where(x => x.Code == permission).First().Uid,
-                            CreatedAt = DateTime.Now,
-                            ModifiedAt = DateTime.Now,
-                            CreatorUid = AuthHelper.AdminUserUid!,
-                            ModifierUid = AuthHelper.AdminUserUid!,
-                        };
-                        _dbContext.Add(menuPermission);
-                    }
-                }
-
-                _dbContext.SaveChanges();
-                scope.Complete();
-            }
-
-            MenuHelper.RemoveMenuCache();
+            //MenuHelper.RemoveMenuCache();
 
             return GetOne(entity.Uid);
         }
@@ -177,7 +186,7 @@ namespace AdminApi.Controllers
             entity.DeletedAt = DateTime.Now;
             _dbContext.SaveChanges();
 
-            MenuHelper.RemoveMenuCache();
+            //MenuHelper.RemoveMenuCache();
         }
     }
 }

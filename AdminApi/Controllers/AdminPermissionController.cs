@@ -1,22 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using SystemAdmin.AdminApiController;
 using System.Net;
 using Su;
 
-namespace AdminApi.Controllers
+namespace AdminApi
 {
     /// <summary>
     /// 權限管理
     /// </summary>
-    /// <param name="appSettings"></param>
-    /// <param name="env"></param>
-    /// <param name="CBCTContext"></param>
     [Route("admin-permission")]
-    [ApiController]
     [AddPermission(Core.Constants.AdminPermission.Admin)]
-    public class AdminPermissionController(IOptions<Core.Models.AdminAppSettings> appSettings, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext) : AdminApiControllerBase(appSettings, env, CBCTContext)
+    public class AdminPermissionController : BaseApiController
     {
+        public AdminPermissionController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext)
+            : base(commonClass, env, CBCTContext)
+        {
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -27,7 +27,6 @@ namespace AdminApi.Controllers
             var query = _dbContext.AdminPermissions.AsNoTracking().Where(x => x.DeletedAt == null).OrderBy(x => x.Sort).ThenBy(x => x.Id);
             return new Su.PageList<Core.Ef.AdminPermission>((IOrderedQueryable<Core.Ef.AdminPermission>)query, currentPage, pageSize);
         }
-
 
         /// <summary>
         /// 
@@ -74,7 +73,7 @@ namespace AdminApi.Controllers
             }
             ex.TryThrowValidationException();
 
-            string adminUid = Core.Helpers.AuthHelper.AdminUserUid!;
+            string adminUid = Core.Helpers.AuthHelper.LoginUid!;
             Core.Ef.AdminPermission? entity;
             if (string.IsNullOrEmpty(dto.Uid))
             {

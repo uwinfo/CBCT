@@ -23,6 +23,8 @@ public partial class AdminMenu
     /// </summary>
     public string? ParentUid { get; set; }
 
+    public string? PermissionUid { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public string CreatorUid { get; set; } = null!;

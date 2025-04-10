@@ -1,5 +1,4 @@
-﻿using AdminApi;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Core.Constants;
 using Core.Helpers;
@@ -7,24 +6,16 @@ using Google.Authenticator;
 using System.Net;
 using Su;
 
-namespace SystemAdmin.AdminApiController
+namespace AdminApi
 {
     /// <summary>
     /// 登入和授權用 API
     /// </summary>
     [Route("admin-auth")]
-    public class AdminAuthController : AdminApiControllerBase
+    public class AdminAuthController : BaseApiController
     {
-        /// <summary>
-        /// 在 AdminUser 之中新增記錄
-        /// </summary>
-        /// <param name="message"></param>
-        void AddLog(string message)
-        {
-            Su.FileLogger.AddDailyLog("AdminAuth", message);
-        }
-
-        public AdminAuthController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext) : base(commonClass, env, CBCTContext)
+        public AdminAuthController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext) 
+            : base(commonClass, env, CBCTContext)
         {
         }
 
@@ -119,13 +110,11 @@ namespace SystemAdmin.AdminApiController
             var admin = AdminUserHelper.GetManager(_dbContext, postBody, isCheckSecret);
             if (admin == null)
             {
-                AddLog("Log in fail");
                 throw new CustomException("登入失敗，請確認帳號或密碼是否正確", HttpStatusCode.Unauthorized);
             }
 
             if (admin.DeletedAt != null || admin.EnStatus == Core.Constants.General.Status.Disabled)
             {
-                AddLog("MEMBER_BE_BLOCKED");
                 throw new CustomException("該使用者已被停權", HttpStatusCode.Unauthorized);
             }
 
@@ -139,7 +128,6 @@ namespace SystemAdmin.AdminApiController
 
                     if (string.IsNullOrEmpty(otpSecret))
                     {
-                        AddLog("otpSecret is null");
                         throw new CustomException("請先建立動態密碼。", HttpStatusCode.BadRequest);
                     }
 
@@ -147,13 +135,11 @@ namespace SystemAdmin.AdminApiController
                     bool result = tfa.ValidateTwoFactorPIN(otpSecret, OTP);
                     if (result == false)
                     {
-                        AddLog("INVALID_OTP");
                         throw new CustomException("動態密碼錯誤", HttpStatusCode.BadRequest);
                     }
                 }
 
-                Core.Helpers.AuthHelper.AdminLogIn(admin.Uid, _dbContext);
-                AddLog(admin.Uid.ToString() + "；" + admin.Name + "；login success");
+                AuthHelper.AdminLogIn(admin.Uid, _dbContext);
                 return new { res = true };
             }
             else

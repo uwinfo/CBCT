@@ -1,25 +1,20 @@
-﻿using AdminApi;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Core.Dtos;
 using Core.Helpers;
 
-namespace SystemAdmin.AdminApiController
+namespace AdminApi
 {
     /// <summary>
     /// 管理後台使用者 
     /// </summary>
     [Route("admin-user")]
     [AddPermission(Core.Constants.AdminPermission.UserManagement)]
-    public class AdminUserController(IOptions<Core.Models.AdminAppSettings> appSettings, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext) : AdminApiControllerBase(appSettings, env, CBCTContext)
+    public class AdminUserController : BaseApiController
     {
-        /// <summary>
-        /// 在 AdminUser 之中新增記錄
-        /// </summary>
-        /// <param name="message"></param>
-        void AddLog(string message)
+        public AdminUserController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext)
+            : base(commonClass, env, CBCTContext)
         {
-            Su.FileLogger.AddDailyLog("AdminUser", message);
         }
 
         /// <summary>

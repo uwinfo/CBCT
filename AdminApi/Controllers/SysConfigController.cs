@@ -1,20 +1,23 @@
 ﻿using Core.Helpers;
 using System.Data;
 using System.Transactions;
-using SystemAdmin.AdminApiController;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AdminApi.Controllers
+namespace AdminApi
 {
     /// <summary>
     /// 系統參數
     /// </summary>
     [Route("sys_config")]
-    [ApiController]
     [AddPermission(Core.Constants.AdminPermission.Admin)]
-    public class SysConfigController(IOptions<Core.Models.AdminAppSettings> appSettings, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext) : AdminApiControllerBase(appSettings, env, CBCTContext)
+    public class SysConfigController : BaseApiController
     {
+        public SysConfigController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext)
+            : base(commonClass, env, CBCTContext)
+        {
+        }
+
         /// <summary>
         /// 取得系統參數清單
         /// </summary>

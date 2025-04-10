@@ -35,6 +35,7 @@
 </template>
 
 <script setup>
+import { ElMessageBox } from 'element-plus';
 import {ref, onMounted} from 'vue';
 import api from '../../js/api';
 import {Delete, Edit} from '@element-plus/icons-vue';
@@ -60,27 +61,36 @@ onMounted(async()=>{
 })
 
 const loadData = async()=>{
-    try {
-        const params = new URLSearchParams();
-        params.append('currentPage', currentPage.value);
-        params.append('pageSize', pageSize.value);
+  try {
+      const params = new URLSearchParams();
+      params.append('currentPage', currentPage.value);
+      params.append('pageSize', pageSize.value);
 
-        if (keyword.value) {
-            params.append('keyword', keyword.value);
-        }
+      if (keyword.value) {
+          params.append('keyword', keyword.value);
+      }
 
-        const dataResponse = await api.axiosGetAsync(`/admin-user?${params.toString()}`);
-        data.value = dataResponse.data;
-        
-        data.value.list = data.value.list.map((x) => {
-          return {
-            ...x,
-            enStatus: statusMapping[String(x.enStatus)] || '',
-          };
-        });
-    } catch (error) {
-        console.error('Error loading data:', error);
+      const dataResponse = await api.axiosGetAsync(`/admin-user?${params.toString()}`);
+      data.value = dataResponse.data;
+      
+      data.value.list = data.value.list.map((x) => {
+        return {
+          ...x,
+          enStatus: statusMapping[String(x.enStatus)] || '',
+        };
+      });
+  } catch (error) {
+    const payloadErrors = error.response?.data?.invalidatedPayload;
+    let errorMessage = '請求失敗';
+    if (payloadErrors == null) {
+      errorMessage = error.response?.data?.message;
     }
+    ElMessageBox.alert(errorMessage, '錯誤', {
+      confirmButtonText: '確認',
+      type: 'error',
+      message: `${error.message}`,
+    });
+  }
 }
 
 const search = async(item)=>{
@@ -114,7 +124,16 @@ const deleteAdmin = async (uid) => {
     await api.axiosDeleteAsync(`/admin-user?uid=${uid}`);
     await loadData();
   } catch (error) {
-    console.error('刪除錯誤:', error);
+    const payloadErrors = error.response?.data?.invalidatedPayload;
+    let errorMessage = '請求失敗';
+    if (payloadErrors == null) {
+      errorMessage = error.response?.data?.message;
+    }
+    ElMessageBox.alert(errorMessage, '錯誤', {
+      confirmButtonText: '確認',
+      type: 'error',
+      message: `${error.message}`,
+    });
   }
 };
 

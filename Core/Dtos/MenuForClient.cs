@@ -11,10 +11,5 @@
         public long Sort { get; set; }
 
         public string? Parent { get; set; }
-
-        /// <summary>
-        /// Menu關聯的權限
-        /// </summary>
-        public List<string>? Permissions { get; set; }
     }
 }

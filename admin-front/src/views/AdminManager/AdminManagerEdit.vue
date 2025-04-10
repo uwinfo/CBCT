@@ -79,6 +79,7 @@
 </template>
 
 <script setup>
+import { ElMessageBox } from 'element-plus';
 import { ref, onMounted, computed } from 'vue';
 import { useRoute ,useRouter} from 'vue-router'; 
 import api from '../../js/api';
@@ -203,7 +204,16 @@ const deleteData = async (uid) => {
     await api.axiosDeleteAsync(`/admin-user?uid=${uid}`);
     cancel();
   } catch (error) {
-    console.error('刪除錯誤:', error);
+    const payloadErrors = error.response?.data?.invalidatedPayload;
+    let errorMessage = '請求失敗';
+    if (payloadErrors == null) {
+      errorMessage = error.response?.data?.message;
+    }
+    ElMessageBox.alert(errorMessage, '錯誤', {
+      confirmButtonText: '確認',
+      type: 'error',
+      message: `${error.message}`,
+    });
   }
 };
 

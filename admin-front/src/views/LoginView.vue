@@ -127,7 +127,7 @@ const getOpt = function(){
       ElMessageBox.alert(errorMessage, '錯誤', {
         confirmButtonText: '確認',
         type: 'error',
-        message: `${error.response.data.message}`,
+        message: `${error.message}`,
       });
     });
 }

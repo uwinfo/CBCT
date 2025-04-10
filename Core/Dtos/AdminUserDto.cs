@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace Core.Dtos
 {
     public class LogInDto
@@ -50,7 +45,7 @@ namespace Core.Dtos
         /// <summary>
         /// 所屬群組
         /// </summary>
-        public List<string> AdminRoleUids { get; set; }
+        public List<string>? AdminRoleUids { get; set; }
     }
 
     public class ForgotSecretDto

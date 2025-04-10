@@ -40,11 +40,6 @@ namespace Core.Helpers
             return setupInfo.QrCodeSetupImageUrl;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="keyword"></param>
-        /// <returns></returns>
         public static IOrderedQueryable<Dtos.AdminUserDto> GetQuery(CBCTContext ct, string? keyword)
         {
             var query = ct.AdminUsers.Where(x => x.DeletedAt == null &&
@@ -63,13 +58,6 @@ namespace Core.Helpers
             return query;
         }
 
-        public static int GetRowNums(CBCTContext _dbContext)
-        {
-            var query = _dbContext.AdminUsers.Where((x) => x.DeletedAt == null).Count();
-            return query;
-
-        }
-
         /// <summary>
         /// 
         /// </summary>
@@ -79,7 +67,7 @@ namespace Core.Helpers
         public static void Delete(CBCTContext _dbContext, string uid)
         {
             AdminUser? admin = _dbContext.AdminUsers.Find(uid);
-            string editedBy = AuthHelper.AdminUserUid!;
+            string editedBy = AuthHelper.LoginUid!;
             if (admin == null)
             {
                 throw new CustomException("找不到資料");
@@ -132,7 +120,7 @@ namespace Core.Helpers
 
             ex.TryThrowValidationException();
 
-            string adminUid = AuthHelper.AdminUserUid!;
+            string adminUid = AuthHelper.LoginUid!;
             AdminUser? entity;
             if (string.IsNullOrEmpty(dto.Uid))
             {
@@ -243,22 +231,22 @@ namespace Core.Helpers
             return manager;
         }
 
-        public static string CreateQrCode(CBCTContext _dbContext, string uid, string otpSecret)
-        {
-            var tfa = new TwoFactorAuthenticator();
+        //public static string CreateQrCode(CBCTContext _dbContext, string uid, string otpSecret)
+        //{
+        //    var tfa = new TwoFactorAuthenticator();
 
-            var admin = _dbContext.AdminUsers.Find(uid);
+        //    var admin = _dbContext.AdminUsers.Find(uid);
 
-            var setupInfo = tfa.GenerateSetupCode("Contin Ec Admin", admin.Email, otpSecret, false, 100);
+        //    var setupInfo = tfa.GenerateSetupCode("Contin Ec Admin", admin.Email, otpSecret, false, 100);
 
-            admin.OtpSecret = otpSecret;
-            admin.ModifierUid = "system";
-            admin.ModifiedAt = DateTime.Now;
+        //    admin.OtpSecret = otpSecret;
+        //    admin.ModifierUid = "system";
+        //    admin.ModifiedAt = DateTime.Now;
 
-            _dbContext.SaveChanges();
+        //    _dbContext.SaveChanges();
 
-            return setupInfo.QrCodeSetupImageUrl;
-        }
+        //    return setupInfo.QrCodeSetupImageUrl;
+        //}
 
         public static string UpadteOtpConfirm(CBCTContext _dbContext, string uid)
         {
@@ -280,20 +268,20 @@ namespace Core.Helpers
             return admin.OtpSecret;
         }
 
-        public static int SetManagerToForgotPasswordState(CBCTContext _dbContext, string editBy, AdminUser admin)
-        {
-            // update manager reset_password_token
-            admin.ResetToken = CryptographicHelper.GetSpecificLengthRandomString(64, true);
-            admin.ResetTokenExpiration = DateTime.Now.AddMinutes(10);
-            admin.ModifierUid = editBy;
-            admin.ModifiedAt = DateTime.Now;
-            return _dbContext.SaveChanges();
-        }
+        //public static int SetManagerToForgotPasswordState(CBCTContext _dbContext, string editBy, AdminUser admin)
+        //{
+        //    // update manager reset_password_token
+        //    admin.ResetToken = CryptographicHelper.GetSpecificLengthRandomString(64, true);
+        //    admin.ResetTokenExpiration = DateTime.Now.AddMinutes(10);
+        //    admin.ModifierUid = editBy;
+        //    admin.ModifiedAt = DateTime.Now;
+        //    return _dbContext.SaveChanges();
+        //}
 
-        public static string GetToken(CBCTContext _dbContext, string uid)
-        {
-            var admin = _dbContext.AdminUsers.Find(uid);
-            return admin.ResetToken;
-        }
+        //public static string GetToken(CBCTContext _dbContext, string uid)
+        //{
+        //    var admin = _dbContext.AdminUsers.Find(uid);
+        //    return admin.ResetToken;
+        //}
     }
 }

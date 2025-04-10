@@ -1,5 +1,4 @@
-﻿//using Core.Dtos;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Core.Models;
 using System.Net;
 using Su;
@@ -125,7 +124,6 @@ namespace Core.Helpers
         /// 記錄登入 Cookie 用
         /// </summary>
         static string? _authCookieName = null;
-
         static string AuthCookieName
         {
             get
@@ -157,36 +155,6 @@ namespace Core.Helpers
         }
 
         /// <summary>
-        /// 記錄登入 Cookie 用, 只允許 "Admin" 或 "Www"
-        /// </summary>
-        static string? _Site = null;
-
-        public static string Site
-        {
-            set
-            {
-                if (_Site != null)
-                {
-                    throw new Exception("Site 只能設定一次");
-                }
-
-                if (value != Core.Constants.Site.ADMIN && value != Core.Constants.Site.WWW)
-                {
-                    throw new Exception("Site 的值錯誤");
-                }
-                _Site = value;
-            }
-            get
-            {
-                if (string.IsNullOrEmpty(_Site))
-                {
-                    throw new Exception("未設定 Site");
-                }
-                return _Site;
-            }
-        }
-
-        /// <summary>
         /// 判斷是否已登入
         /// </summary>
         /// <returns></returns>
@@ -194,39 +162,20 @@ namespace Core.Helpers
         {
             get
             {
-                switch(Site)
-                {
-                    case Core.Constants.Site.ADMIN:
-                        return AdminLoginInfo != null;
-                    //case Core.Constants.Site.WWW:
-                    //    return GeneralLoginInfo != null;
-                }
-
-                return false;
+                return LoginInfo != null;
             }
         }
 
         /// <summary>
-        /// 後台登入者的 Uid
+        /// 登入者的 Uid
         /// </summary>
-        public static string? AdminUserUid
+        public static string? LoginUid
         {
             get
             {
-                return AdminLoginInfo?.AdminUserUid;
+                return LoginInfo?.LoginUid;
             }
         }
-
-        ///// <summary>
-        ///// 前台登入者的 Uid
-        ///// </summary>
-        //public static string? MemberUid
-        //{
-        //    get
-        //    {
-        //        return GeneralLoginInfo?.LoginUid;
-        //    }
-        //}
 
         /// <summary>
         /// 由 Cookie 取得登入者的權限(可以放到 4K, 希望不會爆掉)
@@ -248,7 +197,7 @@ namespace Core.Helpers
                     return (List<Core.Constants.AdminPermission>)Su.CurrentContext.Items[itemKey];
                 }
 
-                var permissionStr = AdminLoginInfo!.AdminPermissionCodes;
+                var permissionStr = LoginInfo!.PermissionCodes;
                 //Su.Debug.AppendLog("permissionStr == null: "+ string.IsNullOrWhiteSpace(permissionStr));
                 if (string.IsNullOrWhiteSpace(permissionStr))
                 {
@@ -287,17 +236,17 @@ namespace Core.Helpers
         }
 
         /// <summary>
-        /// 取得 Admin 登入者的資訊。(由 Cookie 中取得)
+        /// 取得登入者的資訊。(由 Cookie 中取得)
         /// </summary>
         /// <returns></returns>
-        public static AdminLoginInfo? AdminLoginInfo
+        public static LoginInfo? LoginInfo
         {
             get
             {
                 var key = "GetLoginUserInfo";
                 if (Su.CurrentContext.Current.Items.ContainsKey(key))
                 {
-                    return (AdminLoginInfo?)Su.CurrentContext.Current.Items[key];
+                    return (LoginInfo?)Su.CurrentContext.Current.Items[key];
                 }
 
                 var authCookie = Su.CurrentContext.Current.Request.Cookies[AuthCookieName];
@@ -312,11 +261,11 @@ namespace Core.Helpers
                     var loginData = Su.Encryption.AesDecryptCookie(authCookie);
                     var arr = loginData.Split(',');
 
-                    var res = new AdminLoginInfo
+                    var res = new LoginInfo
                     {
                         LoginAt = arr[0].ToDate(),
-                        AdminUserUid = arr[1],
-                        AdminPermissionCodes = arr[2]
+                        LoginUid = arr[1],
+                        PermissionCodes = arr[2]
                     };
 
                     if (res.LoginAt < DateTime.Now.AddDays(-1)) //三天內未使用，就視為已登出
@@ -328,7 +277,7 @@ namespace Core.Helpers
                     if (res.LoginAt < DateTime.Now.AddDays(-1))
                     {
                         //一天內未登出，重新再發 Cookie
-                        Helpers.AuthHelper.AddAdminLoginCookie(res.AdminUserUid, res.AdminPermissionCodes);
+                        Helpers.AuthHelper.AddLoginCookie(res.LoginUid, res.PermissionCodes);
                     }
 
                     Su.CurrentContext.Current.Items[key] = res;
@@ -341,57 +290,6 @@ namespace Core.Helpers
                 }
             }
         }
-
-        ///// <summary>
-        ///// 取得官網, 團購網登入者的資訊。(由 Cookie 中取得)
-        ///// </summary>
-        ///// <returns></returns>
-        //public static GeneralLoginInfo? GeneralLoginInfo
-        //{
-        //    get
-        //    {
-        //        var key = "GetLoginUserInfo";
-        //        if (Su.CurrentContext.Current.Items.ContainsKey(key))
-        //        {
-        //            return (GeneralLoginInfo?)Su.CurrentContext.Current.Items[key];
-        //        }
-
-        //        var authCookie = Su.CurrentContext.Current.Request.Cookies[AuthCookieName];
-        //        if (string.IsNullOrEmpty(authCookie))
-        //        {
-        //            Su.CurrentContext.Current.Items[key] = null;
-        //            return null;
-        //        }
-
-        //        try
-        //        {
-        //            var loginData = Su.Encryption.AesDecryptCookie(authCookie);
-        //            var arr = loginData.Split(',');
-
-        //            var res = new GeneralLoginInfo(arr[0].ToDate(), arr[1]);
-
-        //            if (res.LoginAt < DateTime.Now.AddDays(-1)) //三天內未使用，就視為已登出
-        //            {
-        //                Su.CurrentContext.Current.Items[key] = null;
-        //                return null;
-        //            }
-
-        //            if (res.LoginAt < DateTime.Now.AddDays(-1))
-        //            {
-        //                //一天內未登出，重新再發 Cookie
-        //                Helpers.AuthHelper.AddLoginCookie(res.LoginUid);
-        //            }
-
-        //            Su.CurrentContext.Current.Items[key] = res;
-        //            return res;
-        //        }
-        //        catch (Exception)
-        //        {
-        //            Su.CurrentContext.Current.Items[key] = null;
-        //            return null;
-        //        }
-        //    }
-        //}
 
         /// <summary>
         /// 後台登入用
@@ -410,26 +308,17 @@ namespace Core.Helpers
                 .ToOneString("^");
 
             //不要放 Json, 字串會太長,
-            AddAdminLoginCookie(userUid, permissionCodes);
+            AddLoginCookie(userUid, permissionCodes);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="adminUserUid"></param>
-        /// <param name="adminPermissionCodes">用 ^ 分隔</param>
-        public static void AddAdminLoginCookie(string adminUserUid, string adminPermissionCodes)
+        /// <param name="loginUid"></param>
+        /// <param name="permissionCodes">用 ^ 分隔</param>
+        public static void AddLoginCookie(string loginUid, string permissionCodes)
         {
-            Su.Wu.AddCookie(AuthCookieName, Su.Encryption.AesEncryptCookie($"{DateTime.Now.ISO8601()},{adminUserUid},{adminPermissionCodes}"));
-        }
-
-        /// <summary>
-        /// 團購網, 前台登入用
-        /// </summary>
-        /// <param name="memberUid"></param>
-        public static void AddLoginCookie(string memberUid)
-        {
-            Su.Wu.AddCookie(AuthCookieName, Su.Encryption.AesEncryptCookie($"{DateTime.Now.ISO8601()},{memberUid}"));
+            Su.Wu.AddCookie(AuthCookieName, Su.Encryption.AesEncryptCookie($"{DateTime.Now.ISO8601()},{loginUid},{permissionCodes}"));
         }
 
         /// <summary>
@@ -531,16 +420,13 @@ namespace Core.Helpers
         {
             get
             {
-                if (!IsLogin)
-                {
-                    return null;
-                }
+                if (!IsLogin) { return null; }
 
                 string key = "LoginAdminUsers";
                 if (!Su.CurrentContext.Items.ContainsKey(key))
                 {
-                    CurrentContext.Items[key] = AdminUserHelper.GetOne(Core.Ef.CBCTContext.NewDbContext, AdminUserUid)
-                        ?? throw new Exception("使用者不存在: " + AdminUserUid);
+                    CurrentContext.Items[key] = AdminUserHelper.GetOne(Core.Ef.CBCTContext.NewDbContext, LoginUid)
+                        ?? throw new Exception("使用者不存在: " + LoginUid);
                 }
 
                 return (Dtos.AdminUserDto)Su.CurrentContext.Items[key];
@@ -562,56 +448,6 @@ namespace Core.Helpers
         //    return member;
         //}
 
-        //public static async Task<bool> LineLoginAsync(string code, string state, string lineCallBackUrl)
-        //{
-        //    var lineLoginInfo = new Core.Dtos.LineDtos.LoginInfo
-        //    {
-        //        Code = code,
-        //        State = state,
-        //        CallBackUrl = lineCallBackUrl
-        //    };
-
-        //    try
-        //    {
-        //        var profile = await LineHelper.GetLineProfileAsync(lineLoginInfo);
-        //        if (profile == null)
-        //        {
-        //            return false;
-        //        }
-
-        //        var ct = Core.Ef.CBCTContext.NewDbContext;
-        //        var memberLine = await ct.MemberLines.Where(ml => ml.LineUid == profile.userId).FirstOrDefaultAsync();
-        //        if (memberLine == null)
-        //        {
-        //            //建立 member_line
-        //            memberLine = new Core.Ef.MemberLine();
-        //            memberLine.LineUid = profile.userId;
-        //            memberLine.MemberUid = Guid.NewGuid().ToString();
-        //            memberLine.DisplayName = profile.displayName;
-        //            memberLine.PictureUrl = profile.pictureUrl;
-        //            ct.MemberLines.Add(memberLine);
-
-        //            //建立 member
-        //            ct.Members.Add(CreateMemberFromLineProfile(memberLine));
-        //            await ct.SaveChangesAsync();
-        //        }
-        //        else if (!ct.Members.Any(m => m.Uid == memberLine.MemberUid))
-        //        {
-        //            ct.Members.Add(CreateMemberFromLineProfile(memberLine));
-        //            await ct.SaveChangesAsync();
-        //        }
-
-        //        AddLoginCookie(memberLine.MemberUid);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Su.FileLogger.AddDailyLog("LineLogin", ex.FullInfo());
-
-        //        throw new CustomException(HttpStatusCode.BadRequest, $"Line 登入錯誤: {ex.Message}");
-        //    }
-
-        //    return true;
-        //}
 
         //public static Core.Ef.Member? LoginMember
         //{
@@ -640,5 +476,25 @@ namespace Core.Helpers
         //        return (Core.Ef.Member?)Su.CurrentContext.Items[itemKey];
         //    }
         //}
+
+        /// <summary>
+        /// 登入的醫師資料
+        /// </summary>
+        public static Core.Ef.Doctor? LoginDoctor
+        {
+            get
+            {
+                if (!IsLogin) { return null; }
+
+                string key = "LoginDoctors";
+                if (!Su.CurrentContext.Items.ContainsKey(key))
+                {
+                    CurrentContext.Items[key] = DoctorHelper.GetOne(Core.Ef.CBCTContext.NewDbContext, LoginUid)
+                        ?? throw new Exception("使用者不存在: " + LoginUid);
+                }
+
+                return (Core.Ef.Doctor?)Su.CurrentContext.Items[key];
+            }
+        }
     }
 }

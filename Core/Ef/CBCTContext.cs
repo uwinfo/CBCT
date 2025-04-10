@@ -13,8 +13,6 @@ public partial class CBCTContext : DbContext
 
     public virtual DbSet<AdminMenu> AdminMenus { get; set; }
 
-    public virtual DbSet<AdminMenuPermission> AdminMenuPermissions { get; set; }
-
     public virtual DbSet<AdminPermission> AdminPermissions { get; set; }
 
     public virtual DbSet<AdminRole> AdminRoles { get; set; }
@@ -62,35 +60,10 @@ public partial class CBCTContext : DbContext
             entity.Property(e => e.ParentUid)
                 .HasComment("第一層為#，後面的接對應的id")
                 .HasColumnName("parent_uid");
+            entity.Property(e => e.PermissionUid).HasColumnName("permission_uid");
             entity.Property(e => e.Sort)
                 .HasDefaultValue(500L)
                 .HasColumnName("sort");
-        });
-
-        modelBuilder.Entity<AdminMenuPermission>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("admin_menu_permission_pkey");
-
-            entity.ToTable("admin_menu_permission", tb => tb.HasComment("後台menu的權限設定"));
-
-            entity.Property(e => e.Id)
-                .UseIdentityAlwaysColumn()
-                .HasColumnName("id");
-            entity.Property(e => e.AdminMenuUid).HasColumnName("admin_menu_uid");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_at");
-            entity.Property(e => e.CreatorUid).HasColumnName("creator_uid");
-            entity.Property(e => e.DeletedAt)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("deleted_at");
-            entity.Property(e => e.ModifiedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_at");
-            entity.Property(e => e.ModifierUid).HasColumnName("modifier_uid");
-            entity.Property(e => e.PermissionUid).HasColumnName("permission_uid");
         });
 
         modelBuilder.Entity<AdminPermission>(entity =>

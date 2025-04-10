@@ -30,10 +30,10 @@
 </template>
 
 <script setup>
+import { ElMessageBox } from 'element-plus';
 import {ref, onMounted} from 'vue';
 import api from '../../js/api';
 import {Delete, Edit} from '@element-plus/icons-vue';
-// import page from '../../components/PaginationBlock.vue'; //頁碼元件
 import popup from './AdminRoleEdit.vue'; //popup
 
 const data = ref([]);
@@ -60,7 +60,16 @@ const loadList = async()=>{
 
       //console.log(data.value);
   } catch (error) {
-      console.error('Error loading data:', error);
+    const payloadErrors = error.response?.data?.invalidatedPayload;
+    let errorMessage = '請求失敗';
+    if (payloadErrors == null) {
+      errorMessage = error.response?.data?.message;
+    }
+    ElMessageBox.alert(errorMessage, '錯誤', {
+      confirmButtonText: '確認',
+      type: 'error',
+      message: `${error.message}`,
+    });
   }
 }
 

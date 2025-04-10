@@ -22,8 +22,9 @@
         public string? ParentUid { get; set; }
 
         /// <summary>
-        /// 授權清單,逗號分隔
+        /// 授權
         /// </summary>
-        public string? Permissions { get; set; }
+        public string? PermissionUid { get; set; }
+        public string? PermissionDesc { get; set; }
     }
 }
