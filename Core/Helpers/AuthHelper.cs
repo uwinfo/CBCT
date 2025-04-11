@@ -253,6 +253,9 @@ namespace Core.Helpers
 
                 var authCookie = Su.CurrentContext.Current.Request.Cookies[AuthCookieName];
                 Su.Debug.AppendLog("B.authCookie, AuthCookieName: " + AuthCookieName);
+                var authCookie2 = Su.Wu.ReadCookie(AuthCookieName);
+                Su.Debug.AppendLog("B2.authCookie2, AuthCookieName: " + AuthCookieName + ", " + string.IsNullOrEmpty(authCookie2));
+
                 if (string.IsNullOrEmpty(authCookie))
                 {
                     Su.Debug.AppendLog("C.return IsNullOrEmpty: " + authCookie);
