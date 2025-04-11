@@ -1,8 +1,7 @@
-import { fileURLToPath, URL } from 'node:url'
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import vue from '@vitejs/plugin-vue';
+import { fileURLToPath, URL } from 'node:url';
+import { defineConfig } from 'vite';
 //import basicSsl from '@vitejs/plugin-basic-ssl'
-import fs from 'fs'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -11,9 +10,9 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       output: {
-        assetFileNames: 'assets/[name].[hash].[ext]'
-      }
-    }
+        assetFileNames: 'assets/[name].[hash].[ext]',
+      },
+    },
   },
   plugins: [
     vue(),
@@ -21,15 +20,11 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
   },
-  server:{
+  server: {
     port: 5100,
     host: 'localhost',
-    https: {
-      key: fs.readFileSync('./localhost-key.pem'),
-      cert: fs.readFileSync('./localhost.pem'),
-    }
-  }
-})
+  },
+});
