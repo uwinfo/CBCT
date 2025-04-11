@@ -1512,8 +1512,8 @@ namespace Su
                 {
                     throw new Exception("不可併入完整路徑 ..");
                 }
-
-                finalPath = System.IO.Path.Combine(finalPath, subPath);
+                //修正Combine後台路徑，slash 在 LINUX 用錯會出錯
+                finalPath = System.IO.Path.Combine(finalPath, subPath).Replace("\\", "/");
             }
 
 
