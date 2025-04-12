@@ -244,14 +244,21 @@ namespace Core.Helpers
             get
             {
                 var key = "GetLoginUserInfo";
+                Su.Debug.AppendLog("===== LoginInfo Start =====");
                 if (Su.CurrentContext.Current.Items.ContainsKey(key))
                 {
+                    Su.Debug.AppendLog("A.return Current.Items.ContainsKey: " + key);
                     return (LoginInfo?)Su.CurrentContext.Current.Items[key];
                 }
 
                 var authCookie = Su.CurrentContext.Current.Request.Cookies[AuthCookieName];
+                Su.Debug.AppendLog("B.authCookie, AuthCookieName: " + AuthCookieName);
+                var authCookie2 = Su.Wu.ReadCookie(AuthCookieName);
+                Su.Debug.AppendLog("B2.authCookie2, AuthCookieName: " + AuthCookieName + ", " + string.IsNullOrEmpty(authCookie2));
+
                 if (string.IsNullOrEmpty(authCookie))
                 {
+                    Su.Debug.AppendLog("C.return IsNullOrEmpty: " + authCookie);
                     Su.CurrentContext.Current.Items[key] = null;
                     return null;
                 }
@@ -259,8 +266,10 @@ namespace Core.Helpers
                 try
                 {
                     var loginData = Su.Encryption.AesDecryptCookie(authCookie);
+                    Su.Debug.AppendLog("D.loginData: " + loginData);
                     var arr = loginData.Split(',');
 
+                    Su.Debug.AppendLog("E.arr.Count: " + arr.Count());
                     var res = new LoginInfo
                     {
                         LoginAt = arr[0].ToDate(),
@@ -268,8 +277,9 @@ namespace Core.Helpers
                         PermissionCodes = arr[2]
                     };
 
-                    if (res.LoginAt < DateTime.Now.AddDays(-1)) //三天內未使用，就視為已登出
+                    if (res.LoginAt < DateTime.Now.AddDays(-3)) //三天內未使用，就視為已登出
                     {
+                        Su.Debug.AppendLog("F.三天內未使用，就視為已登出, " + res.LoginAt);
                         Su.CurrentContext.Current.Items[key] = null;
                         return null;
                     }
@@ -277,15 +287,18 @@ namespace Core.Helpers
                     if (res.LoginAt < DateTime.Now.AddDays(-1))
                     {
                         //一天內未登出，重新再發 Cookie
+                        Su.Debug.AppendLog("G.一天內未登出，重新再發 Cookie, " + res.LoginAt);
                         Helpers.AuthHelper.AddLoginCookie(res.LoginUid, res.PermissionCodes);
                     }
 
                     Su.CurrentContext.Current.Items[key] = res;
+                    Su.Debug.AppendLog("...LoginInfo End...res: " + res);
                     return res;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     Su.CurrentContext.Current.Items[key] = null;
+                    Su.Debug.AppendLog("...LoginInfo End..." + ex.ToString());
                     return null;
                 }
             }

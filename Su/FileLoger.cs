@@ -226,14 +226,15 @@ namespace Su
         //}
 
         public static string? _OneDayLogDirectory = null;
-
         public static string OneDayLogDirectory
         {
-            get { 
-                return _OneDayLogDirectory ?? throw new Exception("未設定 OneDayLogDirectory"); 
+            get
+            {
+                return _OneDayLogDirectory ?? throw new Exception("未設定 OneDayLogDirectory");
             }
 
-            set {
+            set
+            {
                 if (_OneDayLogDirectory != null)
                 {
                     throw new Exception("_OneDayLogDirectory 不可重覆設定");
@@ -286,7 +287,6 @@ namespace Su
             {
                 directory = OneDayLogDirectory.AddPath(directory);
             }
-
             Su.FileUtility.CreateDirectory(directory);
 
             if (DateTime.Now.ToString("yyyyMMdd").ToInt32() > logBeore)
