@@ -147,5 +147,36 @@ namespace AdminApi
                 throw new CustomException("請輸入動態密碼", HttpStatusCode.BadRequest);
             }
         }
+
+
+        [HttpGet("TEST")]
+        [AddPermission(AdminPermission.UnLimited)]
+        public dynamic TEST()
+        {
+            HttpContext.Response.Cookies.Append("MyCookie", "cookieValue", new CookieOptions
+            {
+                Path = "/",
+                HttpOnly = true,
+                Secure = false,         // ⚠️ 如果有用 HTTPS 才要設 true
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTimeOffset.UtcNow.AddDays(7)
+            });
+
+            var myCookie = HttpContext.Request.Cookies["MyCookie"];
+            if (myCookie != null)
+            {
+                // Cookie 存在
+                Su.Debug.AppendLog("myCookie: " + myCookie);
+                return Ok(myCookie);
+            }
+            else
+            {
+                // Cookie 不存在
+                Su.Debug.AppendLog("myCookie: Cookie 不存在.");
+                return NotFound();
+            }
+            //Core.Helpers.LogHelper.AddExceptionLog("ErrorHandleMiddleware", new Exception("TEST"), isThrowExctption: true);
+            //return Ok();
+        }
     }
 }
