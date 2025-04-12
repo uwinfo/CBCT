@@ -19,6 +19,7 @@ docker run -d \
 -v /var/project/CBCT/data:/data \
 cbct-admin-api
 
+docker build -t cbct-admin-f2e ./ --rm --no-cache
 
 if [ "$(sudo docker ps -q -f name=cbct-admin-f2e)" ]; then
    sudo docker stop cbct-admin-f2e
