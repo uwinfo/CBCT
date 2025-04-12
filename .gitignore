@@ -17,3 +17,5 @@ Www/Properties/PublishProfiles/FolderProfile.pubxml.user
 Www/Www.csproj.user
 AdminApi/secrets.json
 Www/secrets.json
+data
+for-nginx
