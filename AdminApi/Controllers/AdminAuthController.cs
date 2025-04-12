@@ -149,7 +149,7 @@ namespace AdminApi
         }
 
 
-        [HttpGet("TEST")]
+        [HttpGet("test")]
         [AddPermission(AdminPermission.UnLimited)]
         public dynamic TEST()
         {

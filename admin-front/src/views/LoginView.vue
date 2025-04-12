@@ -28,6 +28,11 @@
         <el-form-item>
           <el-button color="#626aef" :dark="isDark" class="w-full" @click="getOpt">取得動態密碼</el-button>
         </el-form-item>
+
+        
+        <el-form-item>
+          <el-button type="primary" class="w-full" @click="test">TEST</el-button>
+        </el-form-item>
       </el-form>
     </el-card>
   </div>
@@ -87,6 +92,20 @@ const login = async () => {
   .then(() => {
     //console.log(response);
     router.push('/');
+  })
+  .catch((error) => {
+    ElMessageBox.alert(error.message, '錯誤', {
+      confirmButtonText: '確認',
+      type: 'error',
+      message: `${error.message}`,
+    });
+  });
+};
+
+const test = async () => {
+  await api.axiosGetAsync('/admin-auth/test')
+  .then((response) => {
+    console.log(response);
   })
   .catch((error) => {
     ElMessageBox.alert(error.message, '錯誤', {
