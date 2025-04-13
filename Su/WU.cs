@@ -433,7 +433,6 @@ namespace Su
         ///// <param name="IsSecure"></param>
         //public static void AddCookie(string name, string value, bool IsHttpOnly = true, DateTime? expire = null, string Domain = null, bool IsSecure = true, SameSiteMode sameSiteMode = SameSiteMode.None)
         //{
-        //    Su.Debug.AppendLog("=== AddCookie ===");
         //    var co = new Microsoft.AspNetCore.Http.CookieOptions();
         //    if (expire != null)
         //    {
@@ -454,12 +453,10 @@ namespace Su
         //    if (expire != null && expire < DateTime.Now)
         //    {
         //        Su.CurrentContext.Current.Items["Cookie_" + name] = null;
-        //        Su.Debug.AppendLog("[expire]");
         //    }
         //    else
         //    {
         //        Su.CurrentContext.Current.Items["Cookie_" + name] = value;
-        //        Su.Debug.AppendLog("Cookie_" + name + "::" + value);
         //    }
         //}
 

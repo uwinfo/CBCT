@@ -28,11 +28,7 @@ namespace AdminApi
         [HttpGet("list")]
         public ActionResult<dynamic> GetSysConfigs([FromQuery] int? currentPage, [FromQuery] int? pageSize, string? keyword = "")
         {
-            try
-            {
-                Su.Debug.AppendLog("...SysConfigController.GetSysConfigs Start......");
-
-                var query = SysConfigHelper.GetQuery(_dbContext, keyword);
+            var query = SysConfigHelper.GetQuery(_dbContext, keyword);
             var newQuery = query.Select(x => new Core.Dtos.SysConfigList
             {
                 Id = x.Id,
@@ -45,14 +41,6 @@ namespace AdminApi
                 ModifierName = x.ModifierName,
             });
             return new Su.PageList<Core.Dtos.SysConfigList>((IOrderedQueryable<Core.Dtos.SysConfigList>)newQuery, currentPage, pageSize);
-
-
-            }
-            catch (Exception ex)
-            {
-                Su.Debug.AppendLog(ex.ToString());
-                throw;
-            }
         }
 
         /// <summary>
