@@ -8,12 +8,17 @@
 - docker
 - git
 - certbot
-- python3-certbot-nginx
+- python3-certbot-nginx 
+
+## Prerequisites
+
+- check github permission `ssh -vT git@github.com`
+- clone repo to local `git clone git@github.com:uwinfo/CBCT.git` 
 
 ## 安裝基本軟體
 
 您可以直接執行附帶的 `install.sh` 腳本，
-安裝後的檢查請輸入以下的指令來確認，
+安裝後的檢查請輸入以下的指令來確認 : 
 
 ```bash
 nginx -v
@@ -22,4 +27,8 @@ docker --version
 git --version
 certbot --version
 ```
+
+## 部署 app
+
+部署的腳本 `deploy.sh`
 
