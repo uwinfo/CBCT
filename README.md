@@ -23,4 +23,3 @@ git --version
 certbot --version
 ```
 
-## Web Server 設定 (Nginx)
