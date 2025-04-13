@@ -31,6 +31,7 @@ fi
 docker run -d \
 -p 8080:80 \
 --name cbct-admin-f2e \
+-v /var/project/CBCT/data:/data \
 cbct-admin-f2e
 
 git rev-parse HEAD > for-nginx/version.txt
