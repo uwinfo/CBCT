@@ -41,8 +41,7 @@ echo "newgrp docker"
 read -p "please type your domain? " domain
 sudo sed "s/__DOMAIN__/${domain}/g" ./devops/cbct.conf > /etc/nginx/conf.d/${domain}.conf
 echo "✅ 已複製並替換 domain，路徑：/etc/nginx/conf.d/${domain}.conf"
-mkdir for-nginx
-
+mkdir -p for-nginx data data/log data/upload
 sudo nginx -s reload
 
 nginx -v
