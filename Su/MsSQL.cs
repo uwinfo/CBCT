@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace Su
 {
@@ -85,105 +80,105 @@ namespace Su
             Dbcs.Add(dbId, dbc);
         }
 
-        public static string GetDbc(Sql.DbId dbId = null)
-        {
-            if(dbId != null)
-            {
-                return Dbcs[dbId];
-            }
+        //public static string GetDbc(Sql.DbId dbId = null)
+        //{
+        //    if(dbId != null)
+        //    {
+        //        return Dbcs[dbId];
+        //    }
 
-            if (CurrentContext.Current.Items[PageDbNameKey] != null)
-            {
-                return Dbcs[(Sql.DbId)CurrentContext.Current.Items[PageDbNameKey]];
-            }
+        //    if (CurrentContext.Current.Items[PageDbNameKey] != null)
+        //    {
+        //        return Dbcs[(Sql.DbId)CurrentContext.Current.Items[PageDbNameKey]];
+        //    }
 
-            return Dbcs[DefaultDbId];
-        }
+        //    return Dbcs[DefaultDbId];
+        //}
 
-        private const string PageDbNameKey = "Su.MsSql.PageDbName";
+        //private const string PageDbNameKey = "Su.MsSql.PageDbName";
 
-        /// <summary>
-        /// 在一個頁面中使用的 DBC, 設定用的介面. 讀取時請用 GetDBC()
-        /// </summary>
-        public static Sql.DbId PageDbName
-        {
-            set
-            {
-                if (CurrentContext.Current.Items[PageDbNameKey] == null)
-                {
-                    CurrentContext.Current.Items[PageDbNameKey] = value;
-                }
-                else
-                {
-                    throw new Exception("不可重覆設定 PageDBC。");
-                }
-            }
-        }
+        ///// <summary>
+        ///// 在一個頁面中使用的 DBC, 設定用的介面. 讀取時請用 GetDBC()
+        ///// </summary>
+        //public static Sql.DbId PageDbName
+        //{
+        //    set
+        //    {
+        //        if (CurrentContext.Current.Items[PageDbNameKey] == null)
+        //        {
+        //            CurrentContext.Current.Items[PageDbNameKey] = value;
+        //        }
+        //        else
+        //        {
+        //            throw new Exception("不可重覆設定 PageDBC。");
+        //        }
+        //    }
+        //}
 
-        /// <summary>
-        /// 因為 DBC 會外洩, 所以要改為 internal
-        /// </summary>
-        /// <param name="DBC"></param>
-        /// <returns></returns>
-        internal static SqlConnection GetOpenedConnection(Sql.DbId dbId = null)
-        {
-            SqlConnection sqlConn = new SqlConnection(GetDbc(dbId));
-            sqlConn.Open();
-            return sqlConn;
-        }
+        ///// <summary>
+        ///// 因為 DBC 會外洩, 所以要改為 internal
+        ///// </summary>
+        ///// <param name="DBC"></param>
+        ///// <returns></returns>
+        //internal static SqlConnection GetOpenedConnection(Sql.DbId dbId = null)
+        //{
+        //    SqlConnection sqlConn = new SqlConnection(GetDbc(dbId));
+        //    sqlConn.Open();
+        //    return sqlConn;
+        //}
 
-        /// <summary>
-        /// 回傳影響的資料數量
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="DBC"></param>
-        /// <param name="timeout"></param>
-        /// <param name="IsReturnIdentity"></param>
-        /// <returns></returns>
-        public static Int32 ExecuteSql(string sql, Sql.DbId dbId = null, Int32 timeout = 0, bool IsReturnIdentity = false)
-        {
-            SqlConnection sqlConn;
-            Int32 Res = 0;
-            using (sqlConn = GetOpenedConnection(dbId))
-            {
-                SqlCommand Cmd = new SqlCommand();
-                if (timeout > 0)
-                {
-                    Cmd.CommandTimeout = timeout;
-                }
-                Cmd.CommandText = sql;
-                Cmd.CommandType = CommandType.Text;
-                Cmd.Connection = sqlConn;
+        ///// <summary>
+        ///// 回傳影響的資料數量
+        ///// </summary>
+        ///// <param name="sql"></param>
+        ///// <param name="DBC"></param>
+        ///// <param name="timeout"></param>
+        ///// <param name="IsReturnIdentity"></param>
+        ///// <returns></returns>
+        //public static Int32 ExecuteSql(string sql, Sql.DbId dbId = null, Int32 timeout = 0, bool IsReturnIdentity = false)
+        //{
+        //    SqlConnection sqlConn;
+        //    Int32 Res = 0;
+        //    using (sqlConn = GetOpenedConnection(dbId))
+        //    {
+        //        SqlCommand Cmd = new SqlCommand();
+        //        if (timeout > 0)
+        //        {
+        //            Cmd.CommandTimeout = timeout;
+        //        }
+        //        Cmd.CommandText = sql;
+        //        Cmd.CommandType = CommandType.Text;
+        //        Cmd.Connection = sqlConn;
 
-                Res = Cmd.ExecuteNonQuery();
+        //        Res = Cmd.ExecuteNonQuery();
 
-                if (IsReturnIdentity == true)
-                {
-                    Res = GetIdentity(sqlConn);
-                }
+        //        if (IsReturnIdentity == true)
+        //        {
+        //            Res = GetIdentity(sqlConn);
+        //        }
 
-                sqlConn.Close();
-            }
-            return Res;
-        }
+        //        sqlConn.Close();
+        //    }
+        //    return Res;
+        //}
 
-        public static int ExecNonQuery(SqlCommand cmd, Sql.DbId dbId = null)
-        {
-            using (var conn = GetOpenedConnection(dbId))
-            {
-                cmd.Connection = conn;
-                return cmd.ExecuteNonQuery();
-            }
-        }
+        //public static int ExecNonQuery(SqlCommand cmd, Sql.DbId dbId = null)
+        //{
+        //    using (var conn = GetOpenedConnection(dbId))
+        //    {
+        //        cmd.Connection = conn;
+        //        return cmd.ExecuteNonQuery();
+        //    }
+        //}
 
-        public static async Task<int> ExecNonQueryAsync(SqlCommand cmd, Sql.DbId dbId = null)
-        {
-            using (var conn = GetOpenedConnection(dbId))
-            {
-                cmd.Connection = conn;
-                return await cmd.ExecuteNonQueryAsync();
-            }
-        }
+        //public static async Task<int> ExecNonQueryAsync(SqlCommand cmd, Sql.DbId dbId = null)
+        //{
+        //    using (var conn = GetOpenedConnection(dbId))
+        //    {
+        //        cmd.Connection = conn;
+        //        return await cmd.ExecuteNonQueryAsync();
+        //    }
+        //}
 
         //public static Int32 ExecuteSQL(string sql, SqlTransaction tran, Int32 timeout = 0, bool IsReturnIdentity = false)
         //{
@@ -498,20 +493,20 @@ namespace Su
         //            }
         //        }
 
-        /// <summary>
-        /// 用 SQL 字串取得 DataTable
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="parameters">用 MsSqlValue() 取代 SQL 字串中的 {XXX}</param>
-        /// <param name="DBC"></param>
-        /// <param name="timeout"></param>
-        /// <param name="isCheckDangerSQL"></param>
-        /// <param name="sqlObjects">用 SqlObj() 取代 SQL 字串中的 [XXX]</param>
-        /// <returns></returns>
-        public static DataTable DtFromSql(string sql, object parameters, Sql.DbId dbId, Int32 timeout = 30, bool isCheckDangerSQL = true, object sqlObjects = null, bool isRemoveCrLf = true)
-        {
-            return DtFromSql(sql.ToMsSql(parameters, sqlObjects, isCheckDangerSQL, isRemoveCrLf), dbId, timeout, isCheckDangerSQL: false);
-        }
+        ///// <summary>
+        ///// 用 SQL 字串取得 DataTable
+        ///// </summary>
+        ///// <param name="sql"></param>
+        ///// <param name="parameters">用 MsSqlValue() 取代 SQL 字串中的 {XXX}</param>
+        ///// <param name="DBC"></param>
+        ///// <param name="timeout"></param>
+        ///// <param name="isCheckDangerSQL"></param>
+        ///// <param name="sqlObjects">用 SqlObj() 取代 SQL 字串中的 [XXX]</param>
+        ///// <returns></returns>
+        //public static DataTable DtFromSql(string sql, object parameters, Sql.DbId dbId, Int32 timeout = 30, bool isCheckDangerSQL = true, object sqlObjects = null, bool isRemoveCrLf = true)
+        //{
+        //    return DtFromSql(sql.ToMsSql(parameters, sqlObjects, isCheckDangerSQL, isRemoveCrLf), dbId, timeout, isCheckDangerSQL: false);
+        //}
 
         /// <summary>
         /// 因為避免造成相容性的問題, 所以只抓幾個最不可能出現的幾個指令和表單.
@@ -537,40 +532,40 @@ namespace Su
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="DBC"></param>
-        /// <param name="timeout">微軟預設值 30 秒</param>
-        /// <param name="isCheckDangerSQL"></param>
-        /// <returns></returns>
-        public static DataTable DtFromSql(string sql, Sql.DbId dbId, Int32 timeout = 30, bool isCheckDangerSQL = true, bool isRemoveCrLf = true)
-        {
-            //Www.Uc.AppendLog(" \r\n" + sql + "\r\n ================================================================================================");
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="sql"></param>
+        ///// <param name="DBC"></param>
+        ///// <param name="timeout">微軟預設值 30 秒</param>
+        ///// <param name="isCheckDangerSQL"></param>
+        ///// <returns></returns>
+        //public static DataTable DtFromSql(string sql, Sql.DbId dbId, Int32 timeout = 30, bool isCheckDangerSQL = true, bool isRemoveCrLf = true)
+        //{
+        //    //Www.Uc.AppendLog(" \r\n" + sql + "\r\n ================================================================================================");
 
-            if (isRemoveCrLf)
-            {
-                sql = sql.Replace("\r\n", " ").Replace("\r", " ").Replace("\n", " ");
-            }
+        //    if (isRemoveCrLf)
+        //    {
+        //        sql = sql.Replace("\r\n", " ").Replace("\r", " ").Replace("\n", " ");
+        //    }
 
-            if (isCheckDangerSQL)
-            {
-                CheckDangerSQL(sql);
-            }
+        //    if (isCheckDangerSQL)
+        //    {
+        //        CheckDangerSQL(sql);
+        //    }
 
-            using (var DA = new SqlDataAdapter(sql, GetDbc(dbId)))
-            {
-                //不可為 null
-                DataTable DT = new DataTable();
+        //    using (var DA = new SqlDataAdapter(sql, GetDbc(dbId)))
+        //    {
+        //        //不可為 null
+        //        DataTable DT = new DataTable();
 
-                DA.SelectCommand.CommandTimeout = timeout;
+        //        DA.SelectCommand.CommandTimeout = timeout;
 
-                DA.Fill(DT);
+        //        DA.Fill(DT);
 
-                return DT;
-            }
-        }
+        //        return DT;
+        //    }
+        //}
 
         //public static DataTable DtFromSql(string Sql, SqlTransaction tran, Int32 timeout = 30)
         //{
@@ -600,31 +595,31 @@ namespace Su
         //    }
         //}
 
-        /// <summary>
-        /// 找不到時回傳 null.
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="DBC"></param>
-        /// <returns></returns>
-        public static object GetSingleValue(string sql, Sql.DbId dbId = null)
-        {
-            try
-            {
-                DataTable DT = DtFromSql(sql, dbId);
-                if (DT.Rows.Count == 0)
-                {
-                    return null;
-                }
-                else
-                {
-                    return DT.Rows[0][0];
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Su.SQL.GetSingleValue: \r\n" + ex.ToString() + "\r\n" + sql);
-            }
-        }
+        ///// <summary>
+        ///// 找不到時回傳 null.
+        ///// </summary>
+        ///// <param name="sql"></param>
+        ///// <param name="DBC"></param>
+        ///// <returns></returns>
+        //public static object GetSingleValue(string sql, Sql.DbId dbId = null)
+        //{
+        //    try
+        //    {
+        //        DataTable DT = DtFromSql(sql, dbId);
+        //        if (DT.Rows.Count == 0)
+        //        {
+        //            return null;
+        //        }
+        //        else
+        //        {
+        //            return DT.Rows[0][0];
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception("Su.SQL.GetSingleValue: \r\n" + ex.ToString() + "\r\n" + sql);
+        //    }
+        //}
 
         //public static object GetSingleValue(string sql, SqlTransaction tran)
         //{

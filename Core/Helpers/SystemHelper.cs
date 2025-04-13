@@ -1,30 +1,35 @@
-﻿namespace Core.Helpers
+﻿using Su;
+
+namespace Core.Helpers
 {
-    public static class SystemHelper
+    public class SystemHelper
     {
-        /// <summary>
-        /// 存放在 Su.CurrentContext.Items
-        /// </summary>
-        public static string? ComputerUid
+        private readonly HttpContextWrapper _httpContext;
+        public SystemHelper(HttpContextWrapper httpContext)
+        {
+            _httpContext = httpContext;
+        }
+
+        public string? ComputerUid
         {
             get
             {
-                if (Su.CurrentContext.Items.ContainsKey("ComputerUid"))
+                if (_httpContext.Items.ContainsKey("ComputerUid"))
                 {
-                    return (string)Su.CurrentContext.Items["ComputerUid"];
+                    return (string)_httpContext.Items["ComputerUid"];
                 }
 
                 return null;
             }
             set
             {
-                if(value == null)
+                if (value == null)
                 {
-                    Su.CurrentContext.Items.Remove("ComputerUid");
+                    _httpContext.Items.Remove("ComputerUid");
                 }
                 else
                 {
-                    Su.CurrentContext.Items["ComputerUid"] = value;
+                    _httpContext.Items["ComputerUid"] = value;
                 }
             }
         }

@@ -15,8 +15,8 @@ namespace AdminApi
     [Route("admin-menu")]
     public class AdminMenuController : BaseApiController
     {
-        public AdminMenuController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext)
-            : base(commonClass, env, CBCTContext)
+        public AdminMenuController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env,
+            Core.Ef.CBCTContext CBCTContext, AuthHelper authHelper) : base(commonClass, env, CBCTContext, authHelper)
         {
         }
 
@@ -44,7 +44,7 @@ namespace AdminApi
             //return Core.Helpers.MenuHelper.GetMenuWithCache(_dbContext);
             var menuList = new List<Core.Dtos.MenuForClient>();
 
-            var userPermissions = AuthHelper.AdminPermissions;
+            var userPermissions = _authHelper.AdminPermissions;
             if (userPermissions != null)
             {
                 var permissions = _dbContext.AdminPermissions.AsNoTracking()
@@ -125,7 +125,7 @@ namespace AdminApi
             }
             ex.TryThrowValidationException();
 
-            string adminUid = Core.Helpers.AuthHelper.LoginUid!;
+            string adminUid = _authHelper.LoginUid!;
 
             Core.Ef.AdminMenu? entity;
             if (string.IsNullOrEmpty(dto.Uid))

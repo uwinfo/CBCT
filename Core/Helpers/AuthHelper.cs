@@ -7,27 +7,26 @@ namespace Core.Helpers
 {
     public class AuthHelper
     {
-        const string PagePermissionKey = "PagePermissionKey";
-
-        /// <summary>
-        /// 前後台的權限類別不同
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="permissions"></param>
-        public static void AddPagePermissions<T>(T[] permissions)
+        private readonly HttpContextWrapper _httpContext;
+        private readonly HttpContextHelper _httpContextHelper;
+        public AuthHelper(HttpContextWrapper httpContext, HttpContextHelper httpContextHelper)
         {
-            // 有可能是 swagger 進來的
-            if (permissions == null || CurrentContext.Current == null)
-            {
+            _httpContext = httpContext;
+            _httpContextHelper = httpContextHelper;
+        }
+       
+        private const string PagePermissionKey = "PagePermissionKey";
+        public void AddPagePermissions<T>(T[] permissions)
+        {
+            if (permissions == null || _httpContext.Items == null)
                 return;
-            }
 
-            if (!CurrentContext.Current.Items.ContainsKey(PagePermissionKey))
+            if (!_httpContext.Items.ContainsKey(PagePermissionKey))
             {
-                CurrentContext.Current.Items[PagePermissionKey] = new List<T>();
+                _httpContext.Items[PagePermissionKey] = new List<T>();
             }
 
-            ((List<T>)CurrentContext.Current.Items[PagePermissionKey]).AddRange(permissions);
+            ((List<T>)_httpContext.Items[PagePermissionKey]).AddRange(permissions);
         }
 
         /// <summary>
@@ -39,28 +38,31 @@ namespace Core.Helpers
         /// <param name="pageByPassAuthCode">不用檢查的權限</param>
         /// <param name="userAuthorizedCodes"></param>
         /// <exception cref="CustomException"></exception>
-        public static void CheckPageAuthorization<T>(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context,
+        public void CheckPageAuthorization<T>(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context,
             T userPassAllAuthCode,
             T pageByPassAuthCode,
             IEnumerable<T> userAuthorizedCodes)
         {
-            if (!Core.Helpers.AuthHelper.IsPageAuthorized(userPassAllAuthCode, pageByPassAuthCode, userAuthorizedCodes))
+            if (!IsPageAuthorized(userPassAllAuthCode, pageByPassAuthCode, userAuthorizedCodes))
             {
                 string? controllerName = context.RouteData.Values["controller"]?.ToString();
                 string? actionName = context.RouteData.Values["action"]?.ToString();
-                if (!Core.Helpers.AuthHelper.IsLogin)
+                if (!IsLogin)
                 {
                     throw new CustomException("請先登入", 
                         HttpStatusCode.Unauthorized,
                         debugInfo: (new { controllerName, actionName }).Json());
                 }
 
-                if (Su.Wu.IsLocalhost)
+                if (_httpContextHelper.IsLocalhost)
                 {
-                    var pagePermissions = (List<T>)CurrentContext.Current.Items[PagePermissionKey];
-                    throw new CustomException($"權限不足; pagePermissions: {pagePermissions.Select(x => x.ToString()).ToOneString(",")}", 
-                        HttpStatusCode.Unauthorized, 
-                        debugInfo: (new { controllerName, actionName }).Json());
+                    var pagePermissions = (List<T>)_httpContext.Items[PagePermissionKey];
+                    if (pagePermissions != null)
+                    {
+                        throw new CustomException($"權限不足; pagePermissions: {pagePermissions.Select(x => x.ToString()).ToOneString(",")}",
+                            HttpStatusCode.Unauthorized,
+                            debugInfo: (new { controllerName, actionName }).Json());
+                    }
                 }
 
                 throw new CustomException($"權限不足",
@@ -77,88 +79,54 @@ namespace Core.Helpers
         /// <param name="unlimitedPermission">不用檢查權限的 Permission，通常是 UnLimited 或 不檢查</param>
         /// <param name="userPermissions">使用者被授權的程式碼，因為前後台的 Is Login 判斷方式不同，所以直接傳入已授權的清單</param>
         /// <returns></returns>
-        public static bool IsPageAuthorized<T>(T adminPermission, T unlimitedPermission, IEnumerable<T> userPermissions)
+        public bool IsPageAuthorized<T>(T adminPermission, T unlimitedPermission, IEnumerable<T> userPermissions)
         {
             //每一頁只會執行一次
             string isPageAuthorizedKey = "IsPageAuthorized";
-            if (CurrentContext.Current.Items[isPageAuthorizedKey] != null)
+            if (_httpContext.Items[isPageAuthorizedKey] != null)
             {
-                return (bool)CurrentContext.Current.Items[isPageAuthorizedKey];
+                return (bool)_httpContext.Items[isPageAuthorizedKey];
             }
 
             List<T> pagePermissions;
-            if (CurrentContext.Current.Items[PagePermissionKey] == null)
+            if (_httpContext.Items[PagePermissionKey] == null)
             {
                 //未設定時, 預設登入後才可以執行
                 pagePermissions = new List<T> { adminPermission };
             }
             else
             {
-                pagePermissions = (List<T>)CurrentContext.Current.Items[PagePermissionKey];
+                pagePermissions = (List<T>)_httpContext.Items[PagePermissionKey];
             }
 
             if (pagePermissions.Contains(unlimitedPermission))
             {
-                CurrentContext.Current.Items[isPageAuthorizedKey] = true;
+                _httpContext.Items[isPageAuthorizedKey] = true;
                 return true;
             }
 
             if (userPermissions.Contains(adminPermission))
             {
-                CurrentContext.Current.Items[isPageAuthorizedKey] = true;
+                _httpContext.Items[isPageAuthorizedKey] = true;
                 return true;
             }
 
             //Su.Debug.AppendLog("userPermissions: " + userPermissions.Select(x => x.ToString()).ToOneString(","));
             if (userPermissions.Any(a => pagePermissions.Contains(a)))
             {
-                CurrentContext.Current.Items[isPageAuthorizedKey] = true;
+                _httpContext.Items[isPageAuthorizedKey] = true;
                 return true;
             }
 
-            CurrentContext.Current.Items[isPageAuthorizedKey] = false;
+            _httpContext.Items[isPageAuthorizedKey] = false;
             return false;
-        }
-
-        /// <summary>
-        /// 記錄登入 Cookie 用
-        /// </summary>
-        static string? _authCookieName = null;
-        static string AuthCookieName
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_authCookieName))
-                {
-                    throw new Exception("請先使用 SetAuthCookieName 來設定 cookie name");
-                }
-                return _authCookieName;
-            }
-        }
-
-        /// <summary>
-        /// 設定登入 Cookie 的名稱，
-        /// 注意，前後台必需使用不同的名稱。
-        /// </summary>
-        /// <param name="cookieName"></param>
-        /// <exception cref="Exception"></exception>
-        public static void SetAuthCookieName(string cookieName)
-        {
-            if (_authCookieName == null)
-            {
-                _authCookieName = cookieName;
-            }
-            else
-            {
-                throw new Exception("只能呼叫一次 SetAuthCookieName");
-            }
         }
 
         /// <summary>
         /// 判斷是否已登入
         /// </summary>
         /// <returns></returns>
-        public static bool IsLogin
+        public bool IsLogin
         {
             get
             {
@@ -169,7 +137,7 @@ namespace Core.Helpers
         /// <summary>
         /// 登入者的 Uid
         /// </summary>
-        public static string? LoginUid
+        public string? LoginUid
         {
             get
             {
@@ -180,33 +148,33 @@ namespace Core.Helpers
         /// <summary>
         /// 由 Cookie 取得登入者的權限(可以放到 4K, 希望不會爆掉)
         /// </summary>
-        public static List<Core.Constants.AdminPermission> AdminPermissions
+        public List<Core.Constants.AdminPermission> AdminPermissions
         {
             get
             {
                 //Su.Debug.AppendLog("===AdminPermissions Start===");
                 const string itemKey = "_LoginAdminUserPermissions_";
-                if (Su.CurrentContext.Items.ContainsKey(itemKey))
+                if (_httpContext.Items.ContainsKey(itemKey))
                 {
-                    return (List<Core.Constants.AdminPermission>)Su.CurrentContext.Items[itemKey];
+                    return (List<Core.Constants.AdminPermission>)_httpContext.Items[itemKey];
                 }
 
                 if (!IsLogin)
                 {
-                    Su.CurrentContext.Items[itemKey] = new List<Core.Constants.AdminPermission>();
-                    return (List<Core.Constants.AdminPermission>)Su.CurrentContext.Items[itemKey];
+                    _httpContext.Items[itemKey] = new List<Core.Constants.AdminPermission>();
+                    return (List<Core.Constants.AdminPermission>)_httpContext.Items[itemKey];
                 }
 
                 var permissionStr = LoginInfo!.PermissionCodes;
                 //Su.Debug.AppendLog("permissionStr == null: "+ string.IsNullOrWhiteSpace(permissionStr));
                 if (string.IsNullOrWhiteSpace(permissionStr))
                 {
-                    Su.CurrentContext.Items[itemKey] = new List<Core.Constants.AdminPermission>()
+                    _httpContext.Items[itemKey] = new List<Core.Constants.AdminPermission>()
                     {
                         Core.Constants.AdminPermission.Login
                     };
                     //Su.Debug.AppendLog("AAAAAA");
-                    return (List<Core.Constants.AdminPermission>)Su.CurrentContext.Items[itemKey];
+                    return (List<Core.Constants.AdminPermission>)_httpContext.Items[itemKey];
                 }
 
                 var permissions = new List<Core.Constants.AdminPermission>();
@@ -229,9 +197,9 @@ namespace Core.Helpers
                 //    permissions.Add(Constants.AdminPermission.Admin);
                 //}
 
-                Su.CurrentContext.Items[itemKey] = permissions;
+                _httpContext.Items[itemKey] = permissions;
                 //Su.Debug.AppendLog("...AdminPermissions End...");
-                return (List<Core.Constants.AdminPermission>)Su.CurrentContext.Items[itemKey];
+                return (List<Core.Constants.AdminPermission>)_httpContext.Items[itemKey];
             }
         }
 
@@ -239,27 +207,24 @@ namespace Core.Helpers
         /// 取得登入者的資訊。(由 Cookie 中取得)
         /// </summary>
         /// <returns></returns>
-        public static LoginInfo? LoginInfo
+        public LoginInfo? LoginInfo
         {
             get
             {
                 var key = "GetLoginUserInfo";
                 Su.Debug.AppendLog("===== LoginInfo Start =====");
-                if (Su.CurrentContext.Current.Items.ContainsKey(key))
+                if (_httpContext.Items.ContainsKey(key))
                 {
                     Su.Debug.AppendLog("A.return Current.Items.ContainsKey: " + key);
-                    return (LoginInfo?)Su.CurrentContext.Current.Items[key];
+                    return (LoginInfo?)_httpContext.Items[key];
                 }
 
-                var authCookie = Su.CurrentContext.Current.Request.Cookies[AuthCookieName];
-                Su.Debug.AppendLog("B.authCookie, AuthCookieName: " + AuthCookieName);
-                var authCookie2 = Su.Wu.ReadCookie(AuthCookieName);
-                Su.Debug.AppendLog("B2.authCookie2, AuthCookieName: " + AuthCookieName + ", " + string.IsNullOrEmpty(authCookie2));
-
+                var authCookie = _httpContext.GetCookie(Su.Wu.AuthCookieName);
+                Su.Debug.AppendLog("B.authCookie, AuthCookieName: " + Su.Wu.AuthCookieName);
                 if (string.IsNullOrEmpty(authCookie))
                 {
                     Su.Debug.AppendLog("C.return IsNullOrEmpty: " + authCookie);
-                    Su.CurrentContext.Current.Items[key] = null;
+                    _httpContext.Items[key] = null;
                     return null;
                 }
 
@@ -280,7 +245,7 @@ namespace Core.Helpers
                     if (res.LoginAt < DateTime.Now.AddDays(-3)) //三天內未使用，就視為已登出
                     {
                         Su.Debug.AppendLog("F.三天內未使用，就視為已登出, " + res.LoginAt);
-                        Su.CurrentContext.Current.Items[key] = null;
+                        _httpContext.Items[key] = null;
                         return null;
                     }
 
@@ -288,16 +253,16 @@ namespace Core.Helpers
                     {
                         //一天內未登出，重新再發 Cookie
                         Su.Debug.AppendLog("G.一天內未登出，重新再發 Cookie, " + res.LoginAt);
-                        Helpers.AuthHelper.AddLoginCookie(res.LoginUid, res.PermissionCodes);
+                        AddLoginCookie(res.LoginUid, res.PermissionCodes);
                     }
 
-                    Su.CurrentContext.Current.Items[key] = res;
+                    _httpContext.Items[key] = res;
                     Su.Debug.AppendLog("...LoginInfo End...res: " + res);
                     return res;
                 }
                 catch (Exception ex)
                 {
-                    Su.CurrentContext.Current.Items[key] = null;
+                    _httpContext.Items[key] = null;
                     Su.Debug.AppendLog("...LoginInfo End..." + ex.ToString());
                     return null;
                 }
@@ -310,7 +275,7 @@ namespace Core.Helpers
         /// <param name="userUid"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static void AdminLogIn(string userUid, Core.Ef.CBCTContext ct)
+        public void AdminLogIn(string userUid, Core.Ef.CBCTContext ct)
         {
             var roleUids = ct.AdminRoleAdminUsers.Where(x => x.DeletedAt == null && x.AdminUserUid == userUid).Select(x => x.AdminRoleUid);
             var permissionUids = ct.AdminRoleAdminPermissions.Where(x => x.DeletedAt == null && roleUids.Contains(x.AdminRoleUid))
@@ -329,184 +294,56 @@ namespace Core.Helpers
         /// </summary>
         /// <param name="loginUid"></param>
         /// <param name="permissionCodes">用 ^ 分隔</param>
-        public static void AddLoginCookie(string loginUid, string permissionCodes)
+        public void AddLoginCookie(string loginUid, string permissionCodes)
         {
-            Su.Wu.AddCookie(AuthCookieName, Su.Encryption.AesEncryptCookie($"{DateTime.Now.ISO8601()},{loginUid},{permissionCodes}"));
+            _httpContext.SetCookie(Su.Wu.AuthCookieName, Su.Encryption.AesEncryptCookie($"{DateTime.Now.ISO8601()},{loginUid},{permissionCodes}"));
         }
 
         /// <summary>
         /// 登出(清除 Cookie)
         /// </summary>
-        public static void LogOut()
+        public void LogOut()
         {
-            Su.Wu.RemoveCookie(AuthCookieName);
+            _httpContext.RemoveCookie(Su.Wu.AuthCookieName);
         }
-
-        ///// <summary>
-        ///// CreatorName = AuthHelper.LoginAdmin.Name,
-        ///// CreatorUid
-        ///// CreatedAt
-        ///// ModifierName
-        ///// ModifierUid
-        ///// ModifyAt
-        ///// Uid
-        ///// </summary>
-        ///// <param name="target"></param>
-        ///// <param name="additionalInfo">其它相關欄位的物件</param>
-        ///// <exception cref="Exception"></exception>
-        //public static T SetCreatorInfoAndUid<T>(T target, object? additionalInfo = null)
-        //{
-        //    if (AuthHelper.LoginAdmin == null)
-        //    {
-        //        throw new Exception("請先登入。");
-        //    }
-
-        //    if (additionalInfo != null)
-        //    {
-        //        Su.ObjUtil.CopyTo(additionalInfo, target, skips: "Uid");
-        //    }
-
-        //    var creatorObject = new
-        //    {
-        //        CreatorName = AuthHelper.LoginAdmin.Name,
-        //        CreatorUid = AuthHelper.LoginAdmin.Uid,
-        //        CreatedAt = DateTime.Now,
-        //        ModifierName = AuthHelper.LoginAdmin.Name,
-        //        ModifierUid = AuthHelper.LoginAdmin.Uid,
-        //        ModifyAt = DateTime.Now,
-        //        Uid = Guid.NewGuid().ToString(),
-        //    };
-
-        //    Su.ObjUtil.CopyTo(creatorObject, target);
-
-        //    return target;
-        //}
-
-        //public static void SetDeleteInfo(object target)
-        //{
-        //    if (AuthHelper.LoginAdmin == null)
-        //    {
-        //        throw new Exception("請先登入。");
-        //    }
-
-        //    var deleteInfo = new
-        //    {
-        //        DeleterName = AuthHelper.LoginAdmin.Name,
-        //        DeleterUid = AuthHelper.LoginAdmin.Uid,
-        //        DeletedAt = DateTime.Now,
-        //    };
-
-        //    Su.ObjUtil.CopyTo(deleteInfo, target);
-        //}
-
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="target"></param>
-        ///// <param name="additionalInfo"></param>
-        //public static void SetModiferInfo(object target, object? additionalInfo = null)
-        //{
-        //    if (AuthHelper.LoginAdmin == null)
-        //    {
-        //        throw new Exception("請先登入。");
-        //    }
-
-        //    if(additionalInfo != null)
-        //    {
-        //        Su.ObjUtil.CopyTo(additionalInfo, target, skips: "Uid");
-        //    }
-
-        //    var modifyInfo = new
-        //    {
-        //        ModifierName = AuthHelper.LoginAdmin.Name,
-        //        ModifierUid = AuthHelper.LoginAdmin.Uid,
-        //        ModifyAt = DateTime.Now,
-        //    };
-
-        //    Su.ObjUtil.CopyTo(modifyInfo, target);
-        //}
 
         /// <summary>
         /// 登入的管理者資料
         /// </summary>
-        public static Dtos.AdminUserDto? LoginAdmin
+        public Dtos.AdminUserDto? LoginAdmin
         {
             get
             {
                 if (!IsLogin) { return null; }
 
                 string key = "LoginAdminUsers";
-                if (!Su.CurrentContext.Items.ContainsKey(key))
+                if (!_httpContext.Items.ContainsKey(key))
                 {
-                    CurrentContext.Items[key] = AdminUserHelper.GetOne(Core.Ef.CBCTContext.NewDbContext, LoginUid)
+                    _httpContext.Items[key] = AdminUserHelper.GetOne(Core.Ef.CBCTContext.NewDbContext, LoginUid)
                         ?? throw new Exception("使用者不存在: " + LoginUid);
                 }
 
-                return (Dtos.AdminUserDto)Su.CurrentContext.Items[key];
+                return (Dtos.AdminUserDto)_httpContext.Items[key];
             }
         }
-
-        ///// <summary>
-        ///// Create Member From Line Profile
-        ///// </summary>
-        ///// <param name="memberLine"></param>
-        ///// <returns></returns>
-        //public static Core.Ef.Member CreateMemberFromLineProfile(Core.Ef.MemberLine memberLine)
-        //{
-        //    var member = new Core.Ef.Member();
-        //    member.Uid = memberLine.MemberUid;
-        //    member.Nickname = memberLine.DisplayName;
-        //    member.Source = "line";
-
-        //    return member;
-        //}
-
-
-        //public static Core.Ef.Member? LoginMember
-        //{
-        //    get
-        //    {
-        //        const string itemKey = "_LoginMember_";
-        //        if (Su.CurrentContext.Items.ContainsKey(itemKey))
-        //        {
-        //            return (Core.Ef.Member?)Su.CurrentContext.Items[itemKey];
-        //        }
-
-        //        if (string.IsNullOrEmpty(AuthHelper.MemberUid))
-        //        {
-        //            Su.CurrentContext.Items[itemKey] = null;
-        //            return null;
-        //        }
-
-        //        var member = Core.Ef.CBCTContext.NewDbContext.Members.Where(m => m.Uid == AuthHelper.MemberUid).FirstOrDefault();
-        //        if (member == null) //這個情況應該很少發生，直接回傳，不做 Cache
-        //        {
-        //            return null;
-        //        }
-
-        //        Su.CurrentContext.Items[itemKey] = member;
-
-        //        return (Core.Ef.Member?)Su.CurrentContext.Items[itemKey];
-        //    }
-        //}
 
         /// <summary>
         /// 登入的醫師資料
         /// </summary>
-        public static Core.Ef.Doctor? LoginDoctor
+        public Core.Ef.Doctor? LoginDoctor
         {
             get
             {
                 if (!IsLogin) { return null; }
 
                 string key = "LoginDoctors";
-                if (!Su.CurrentContext.Items.ContainsKey(key))
+                if (!_httpContext.Items.ContainsKey(key))
                 {
-                    CurrentContext.Items[key] = DoctorHelper.GetOne(Core.Ef.CBCTContext.NewDbContext, LoginUid)
+                    _httpContext.Items[key] = DoctorHelper.GetOne(Core.Ef.CBCTContext.NewDbContext, LoginUid)
                         ?? throw new Exception("使用者不存在: " + LoginUid);
                 }
 
-                return (Core.Ef.Doctor?)Su.CurrentContext.Items[key];
+                return (Core.Ef.Doctor?)_httpContext.Items[key];
             }
         }
     }

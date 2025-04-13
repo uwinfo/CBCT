@@ -1,21 +1,30 @@
-﻿namespace Core.Constants
+﻿using Core.Helpers;
+using Su;
+
+namespace Core.Constants
 {
-    public static class SysConfig
+    public class SysConfig
     {
+        private readonly PgSqlCache _pgSqlCache;
+        public SysConfig(PgSqlCache pgSqlCache)
+        {
+            _pgSqlCache = pgSqlCache;
+        }
+
         /// <summary>
         /// 取得全部參數的字典
         /// </summary>
         /// <returns></returns>
-        static Dictionary<string, string> GetDictionary()
+        public Dictionary<string, string> GetDictionary()
         {
             string key = "SysConfig_Dictionary";
-            if (!Su.PgSqlCache.HasCache(key))
+            if (!_pgSqlCache.HasCache(key))
             {
-                var dic = Core.Helpers.SysConfigHelper.GetDictionaryFromDb();
-                Su.PgSqlCache.AddCache(Su.PgSql.DefaultDbId, key, dic, "sys_config");
+                var dic = SysConfigHelper.GetDictionaryFromDb();
+                _pgSqlCache.AddCache(PgSql.DefaultDbId, key, dic, "sys_config");
             }
 
-            return Su.PgSqlCache.GetCache<Dictionary<string, string>>(key);
+            return _pgSqlCache.GetCache<Dictionary<string, string>>(key);
         }
 
         /// <summary>
@@ -23,7 +32,7 @@
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        static string GetConfigFromCache(string name)
+        public string GetConfigFromCache(string name)
         {
             var dic = GetDictionary();
             return dic[name];

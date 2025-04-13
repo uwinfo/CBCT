@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json.Converters;
-using System.Collections.Specialized;
 using System.Data;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Collections;
-//using NPOI.SS.Formula.Functions;
 
 namespace Su
 {
@@ -350,16 +348,16 @@ namespace Su
             return ObjUtil.CopyPropertiesTo(src, dest, skips);
         }
 
-        /// <summary>
-        ///  預設會接 Response.end, 自已本身不會 Response.Write
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="IsEnd"></param>
-        /// <param name="DateFormat"></param>
-        public static void WriteJSON(this object value, bool IsEnd = true, string DateFormat = null)
-        {
-            Su.Wu.WriteJSON(value, IsEnd, DateFormat);
-        }
+        ///// <summary>
+        /////  預設會接 Response.end, 自已本身不會 Response.Write
+        ///// </summary>
+        ///// <param name="value"></param>
+        ///// <param name="IsEnd"></param>
+        ///// <param name="DateFormat"></param>
+        //public static void WriteJSON(this object value, bool IsEnd = true, string DateFormat = null)
+        //{
+        //    Su.Wu.WriteJSON(value, IsEnd, DateFormat);
+        //}
 
         /// <summary>
         /// 盡量不要在迴圈中使用. 可改用原生的 GetProperty(propertyName).GetValue(src, null);
@@ -536,14 +534,14 @@ namespace Su
         //    }
         //}
 
-        /// <summary>
-        /// 要注意, 沒有 Response.End
-        /// </summary>
-        /// <param name="value"></param>
-        public static void WriteJSON(this object value)
-        {
-            Wu.WriteJSON(value);
-        }
+        ///// <summary>
+        ///// 要注意, 沒有 Response.End
+        ///// </summary>
+        ///// <param name="value"></param>
+        //public static void WriteJSON(this object value)
+        //{
+        //    Wu.WriteJSON(value);
+        //}
 
         public static Microsoft.AspNetCore.Mvc.OkObjectResult SuccessJsonResultData(this object data)
         {
@@ -723,60 +721,60 @@ namespace Su
             return sql;
         }
 
-        /// <summary>
-        /// 組成要執行的 SQL
-        /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="parameters">用 MsSqlValue() 取代 SQL 字串中的 {XXX}</param>
-        /// <param name="sqlObjects">用 SqlObj() 取代 SQL 字串中的 [XXX]</param>
-        /// <param name="isCheckDangerSQL"></param>
-        /// <param name="isRemoveCrLf"></param>
-        /// <returns></returns>
-        public static string ToPgSql(this string sql, object? parameters, object sqlColumns = null, object sqlTables = null, bool isCheckDangerSQL = true, bool isRemoveCrLf = true)
-        {
-            //有傳入 parameters 了, 預設可以把 CRLF 拿掉, 變數應該會在 parameters 之中。
-            if (isRemoveCrLf)
-            {
-                sql = sql.Replace("\r", " ").Replace("\n", " ");
-            }
+        ///// <summary>
+        ///// 組成要執行的 SQL
+        ///// </summary>
+        ///// <param name="sql"></param>
+        ///// <param name="parameters">用 MsSqlValue() 取代 SQL 字串中的 {XXX}</param>
+        ///// <param name="sqlObjects">用 SqlObj() 取代 SQL 字串中的 [XXX]</param>
+        ///// <param name="isCheckDangerSQL"></param>
+        ///// <param name="isRemoveCrLf"></param>
+        ///// <returns></returns>
+        //public static string ToPgSql(this string sql, object? parameters, object sqlColumns = null, object sqlTables = null, bool isCheckDangerSQL = true, bool isRemoveCrLf = true)
+        //{
+        //    //有傳入 parameters 了, 預設可以把 CRLF 拿掉, 變數應該會在 parameters 之中。
+        //    if (isRemoveCrLf)
+        //    {
+        //        sql = sql.Replace("\r", " ").Replace("\n", " ");
+        //    }
 
-            if (isCheckDangerSQL)
-            {
-                PgSql.CheckDangerSQL(sql);
-            }
+        //    if (isCheckDangerSQL)
+        //    {
+        //        PgSql.CheckDangerSQL(sql);
+        //    }
 
-            if (parameters != null)
-            {
-                var sourceProperties = parameters.GetType().GetProperties().ToList();
+        //    if (parameters != null)
+        //    {
+        //        var sourceProperties = parameters.GetType().GetProperties().ToList();
 
-                foreach (var srcItem in sourceProperties)
-                {
-                    sql = sql.Replace("{" + srcItem.Name + "}", srcItem.GetValue(parameters).PgSqlValue());
-                }
-            }
+        //        foreach (var srcItem in sourceProperties)
+        //        {
+        //            sql = sql.Replace("{" + srcItem.Name + "}", srcItem.GetValue(parameters).PgSqlValue());
+        //        }
+        //    }
 
-            if (sqlColumns != null)
-            {
-                var sourceProperties = sqlColumns.GetType().GetProperties().ToList();
+        //    if (sqlColumns != null)
+        //    {
+        //        var sourceProperties = sqlColumns.GetType().GetProperties().ToList();
 
-                foreach (var srcItem in sourceProperties)
-                {
-                    sql = sql.Replace("[" + srcItem.Name + "]", srcItem.GetValue(sqlColumns).ToString().PgSqlColumnName());
-                }
-            }
+        //        foreach (var srcItem in sourceProperties)
+        //        {
+        //            sql = sql.Replace("[" + srcItem.Name + "]", srcItem.GetValue(sqlColumns).ToString().PgSqlColumnName());
+        //        }
+        //    }
 
-            if (sqlTables != null)
-            {
-                var sourceProperties = sqlTables.GetType().GetProperties().ToList();
+        //    if (sqlTables != null)
+        //    {
+        //        var sourceProperties = sqlTables.GetType().GetProperties().ToList();
 
-                foreach (var srcItem in sourceProperties)
-                {
-                    sql = sql.Replace("[" + srcItem.Name + "]", srcItem.GetValue(sqlTables).ToString().PgSqlTableName());
-                }
-            }
+        //        foreach (var srcItem in sourceProperties)
+        //        {
+        //            sql = sql.Replace("[" + srcItem.Name + "]", srcItem.GetValue(sqlTables).ToString().PgSqlTableName());
+        //        }
+        //    }
 
-            return sql;
-        }
+        //    return sql;
+        //}
 
         /// <summary>
         /// 使用 Converter 看來沒有明顯的時間差異, 跑 10000000 測試, 時間比在 1.052 ~ 0.902 之間
@@ -1159,20 +1157,20 @@ namespace Su
             return Newtonsoft.Json.JsonConvert.DeserializeObject<T>(value);
         }
 
-        public static string GetRemotePage(this string value, Encoding oE = null)
-        {
-            if (oE == null)
-            {
-                oE = Encoding.UTF8;
-            }
+        //public static string GetRemotePage(this string value, Encoding oE = null)
+        //{
+        //    if (oE == null)
+        //    {
+        //        oE = Encoding.UTF8;
+        //    }
 
-            return Wu.GetRemotePage(value, oE);
-        }
+        //    return Wu.GetRemotePage(value, oE);
+        //}
 
-        public static string Post(this string url, NameValueCollection nvc, Encoding oE = null)
-        {
-            return Wu.Post(url, nvc, oE);
-        }
+        //public static string Post(this string url, NameValueCollection nvc, Encoding oE = null)
+        //{
+        //    return Wu.Post(url, nvc, oE);
+        //}
 
         /// <summary>
         /// 同 urlencode, 但空的會轉為 %20
@@ -2717,49 +2715,49 @@ namespace Su
             return $"\"{str}\"{postfix}";
         }
 
-        /// <summary>
-        /// 多個欄位; 
-        /// ex: a, order.b, c ==> "a", "order"."b", "c"
-        /// </summary>
-        /// <param name="str"></param>
-        /// <param name="isOderBy"></param>
-        /// <returns></returns>
-        public static string PgSqlColumnNameList(this string str, bool isOderBy = false)
-        {
-            var columns = str.Split(',');
+        ///// <summary>
+        ///// 多個欄位; 
+        ///// ex: a, order.b, c ==> "a", "order"."b", "c"
+        ///// </summary>
+        ///// <param name="str"></param>
+        ///// <param name="isOderBy"></param>
+        ///// <returns></returns>
+        //public static string PgSqlColumnNameList(this string str, bool isOderBy = false)
+        //{
+        //    var columns = str.Split(',');
 
-            for (var i = 0; i < columns.Length; i++)
-            {
-                var c = columns[i].Trim();
+        //    for (var i = 0; i < columns.Length; i++)
+        //    {
+        //        var c = columns[i].Trim();
 
-                if (c == "*")
-                {
-                    continue;
-                }
+        //        if (c == "*")
+        //        {
+        //            continue;
+        //        }
 
-                //已經是欄位格式，拆掉 ", 再重建一次
-                if (c.StartsWith("\"") && c.EndsWith("\""))
-                {
-                    c = c.PgSqlColumnName(isOderBy);
-                }
+        //        //已經是欄位格式，拆掉 ", 再重建一次
+        //        if (c.StartsWith("\"") && c.EndsWith("\""))
+        //        {
+        //            c = c.PgSqlColumnName(isOderBy);
+        //        }
 
-                if (c.Contains(' ') || c.Contains('('))
-                {
-                    //其它有可能是 function 或 select 指令
-                    //檢查 sql injection
-                    PgSql.CheckDangerSQL(c);
-                }
-                else
-                {
-                    //轉成標準的格式
-                    c = c.PgSqlColumnName(isOderBy);
-                }
+        //        if (c.Contains(' ') || c.Contains('('))
+        //        {
+        //            //其它有可能是 function 或 select 指令
+        //            //檢查 sql injection
+        //            PgSql.CheckDangerSQL(c);
+        //        }
+        //        else
+        //        {
+        //            //轉成標準的格式
+        //            c = c.PgSqlColumnName(isOderBy);
+        //        }
 
-                columns[i] = c;
-            }
+        //        columns[i] = c;
+        //    }
 
-            return columns.ToOneString(", ");
-        }
+        //    return columns.ToOneString(", ");
+        //}
 
         /// <summary>
         /// PostgreSQL 的 Table Name, 必需加上 schema name, ex: "public"."Order"

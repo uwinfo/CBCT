@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.FileProviders;
+﻿using Core.Helpers;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
+using Su;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +18,7 @@ var commonConfig = builder.Configuration.GetSection("Config:Common");
 commonConfig.Bind(commonConfig);
 builder.Services.Configure<Core.Models.WwwSettings.CommonClass>(commonConfig); //注入 Core.Models.WwwSettings.CommonClass
 
-Core.Helpers.AuthHelper.SetAuthCookieName("sdhroe");
+//Core.Helpers.AuthHelper.SetAuthCookieName("sdhroe");
 
 Su.Wu.SetLogRoot(appSettings.Common.LogDirectory!);
 
@@ -31,9 +33,11 @@ string pgDbc = secretSettings.Secrets.ConnectionStrings!.DefaultConnectionString
 Core.Ef.CBCTContext.SetDbc(pgDbc);
 Su.PgSql.AddDbc(Core.Constants.DbIds.CBCT, pgDbc);
 Su.PgSql.DefaultDbId = Core.Constants.DbIds.CBCT;
-Su.PgSqlCache.AddMonitoredDb(Su.PgSql.DefaultDbId);
-Su.PgSqlCache.StartUpdateTableCache();
+//Su.PgSqlCache.AddMonitoredDb(Su.PgSql.DefaultDbId);
+//Su.PgSqlCache.StartUpdateTableCache();
 System.Threading.Thread.Sleep(200); //等待建立暫存
+
+Su.Wu.InitialSetting("sdhroe", appSettings.Common.LogDirectory!);
 
 //注入 AWS SES 的設定
 Core.Helpers.EmailHelper._senderInfo = secretSettings.SenderInfo;
@@ -62,7 +66,10 @@ builder.Services.AddCors(options =>
 });
 
 //這裡會注入一個 IHttpContextAccessor 
+builder.Services.AddScoped<AuthHelper>();
+builder.Services.AddScoped<HttpContextWrapper>();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<HttpContextHelper>();
 
 builder.Services
     .AddControllers(options =>
@@ -158,7 +165,7 @@ app.Run();
 
 void InitSu(IApplicationBuilder app, IWebHostEnvironment env)
 {
-    Su.CurrentContext.Configure(app);//讓 Su.CurrentContext 可以使用.
+    //Su.CurrentContext.Configure(app);//讓 Su.CurrentContext 可以使用.
     Su.Mail.IsSendWithGmail = true;
 
     //不可更改，更改後會造成舊的 cookie 無法解密

@@ -1,5 +1,7 @@
 ﻿
+using Core.Helpers;
 using Microsoft.AspNetCore.Mvc.Filters;
+using NPOI.SS.Formula.Functions;
 namespace AdminApi
 {
     /// <summary>
@@ -8,6 +10,13 @@ namespace AdminApi
     /// </summary>
     public class CheckAuthorizationFilter : IActionFilter, IOrderedFilter
     {
+        private readonly AuthHelper _authHelper;
+
+        public CheckAuthorizationFilter(AuthHelper authHelper)
+        {
+            _authHelper = authHelper;
+        }
+
         /// <summary>
         /// 預期要在所有 ActionFilter 之前執行(檔案類型檢查可以放在前面)
         /// </summary>
@@ -18,7 +27,7 @@ namespace AdminApi
         /// </summary>
         /// <param name="context"></param>
         public void OnActionExecuted(ActionExecutedContext context)
-        {            
+        {
         }
 
         /// <summary>
@@ -27,17 +36,17 @@ namespace AdminApi
         /// <param name="context"></param>
         public void OnActionExecuting(ActionExecutingContext context)
         {
-            if (Core.Helpers.AuthHelper.IsLogin)
+            if (_authHelper.IsLogin)
             {
-                Core.Helpers.AuthHelper.CheckPageAuthorization(context, Core.Constants.AdminPermission.Admin, 
-                    Core.Constants.AdminPermission.UnLimited, 
-                    Core.Helpers.AuthHelper.AdminPermissions);
+                _authHelper.CheckPageAuthorization(context, Core.Constants.AdminPermission.Admin,
+                    Core.Constants.AdminPermission.UnLimited,
+                    _authHelper.AdminPermissions);
             }
             else
             {
-                Core.Helpers.AuthHelper.CheckPageAuthorization(context, 
-                    Core.Constants.AdminPermission.Admin, 
-                    Core.Constants.AdminPermission.UnLimited, 
+                _authHelper.CheckPageAuthorization(context,
+                    Core.Constants.AdminPermission.Admin,
+                    Core.Constants.AdminPermission.UnLimited,
                     []);
             }
         }

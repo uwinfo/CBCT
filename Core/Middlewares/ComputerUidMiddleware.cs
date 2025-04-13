@@ -1,22 +1,23 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Core.Helpers;
+using Microsoft.AspNetCore.Http;
 
 namespace Core.Middlewares
 {
     public class ComputerUidMiddleware
     {
-
         private readonly RequestDelegate _next;
-
-        public ComputerUidMiddleware(RequestDelegate next)
+        private readonly SystemHelper _systemHelper;
+        public ComputerUidMiddleware(RequestDelegate next, SystemHelper systemHelper)
         {
             _next = next;
+            _systemHelper = systemHelper;
         }
 
         public async Task Invoke(HttpContext context)
         {
             if (context.Request.Cookies.TryGetValue(Constants.System.WwwComputerUidCookieName, out string? computerUid) && !string.IsNullOrEmpty(computerUid))
             {
-                Core.Helpers.SystemHelper.ComputerUid = computerUid;
+                _systemHelper.ComputerUid = computerUid;
             }
             else
             {                
@@ -29,7 +30,7 @@ namespace Core.Middlewares
                     Expires = DateTimeOffset.UtcNow.AddYears(100) // Optional: Set cookie expiration
                 });
 
-                Core.Helpers.SystemHelper.ComputerUid = newComputerId;
+                _systemHelper.ComputerUid = newComputerId;
             }
 
             await _next.Invoke(context);

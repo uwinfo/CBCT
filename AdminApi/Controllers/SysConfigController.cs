@@ -13,8 +13,8 @@ namespace AdminApi
     [AddPermission(Core.Constants.AdminPermission.Admin)]
     public class SysConfigController : BaseApiController
     {
-        public SysConfigController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext)
-            : base(commonClass, env, CBCTContext)
+        public SysConfigController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env,
+            Core.Ef.CBCTContext CBCTContext, AuthHelper authHelper) : base(commonClass, env, CBCTContext, authHelper)
         {
         }
 
@@ -28,7 +28,11 @@ namespace AdminApi
         [HttpGet("list")]
         public ActionResult<dynamic> GetSysConfigs([FromQuery] int? currentPage, [FromQuery] int? pageSize, string? keyword = "")
         {
-            var query = SysConfigHelper.GetQuery(_dbContext, keyword);
+            try
+            {
+                Su.Debug.AppendLog("...SysConfigController.GetSysConfigs Start......");
+
+                var query = SysConfigHelper.GetQuery(_dbContext, keyword);
             var newQuery = query.Select(x => new Core.Dtos.SysConfigList
             {
                 Id = x.Id,
@@ -41,6 +45,14 @@ namespace AdminApi
                 ModifierName = x.ModifierName,
             });
             return new Su.PageList<Core.Dtos.SysConfigList>((IOrderedQueryable<Core.Dtos.SysConfigList>)newQuery, currentPage, pageSize);
+
+
+            }
+            catch (Exception ex)
+            {
+                Su.Debug.AppendLog(ex.ToString());
+                throw;
+            }
         }
 
         /// <summary>
@@ -64,7 +76,7 @@ namespace AdminApi
             {
                 if (string.IsNullOrEmpty(dto.Uid))
                 {
-                    var res = SysConfigHelper.AddOneData(_dbContext, dto);
+                    var res = SysConfigHelper.AddOneData(_dbContext, dto, _authHelper.LoginAdmin);
                     if (res != null)
                     {
                         scope.Complete();
@@ -75,12 +87,12 @@ namespace AdminApi
                 {
                     var SysConfigBefore = _dbContext.SysConfigs.AsNoTracking().Where(r => r.DeletedAt == null && r.Uid == dto.Uid).FirstOrDefault();
 
-                    var res = SysConfigHelper.UpdateOneData(_dbContext, dto);
+                    var res = SysConfigHelper.UpdateOneData(_dbContext, dto, _authHelper.LoginAdmin);
 
                     if (SysConfigBefore != null)
                     {
                         var SysConfigAfter = _dbContext.SysConfigs.AsNoTracking().Where(r => r.DeletedAt == null && r.Uid == dto.Uid).FirstOrDefault();
-                        LogHelper.InsertSysLog("SysConfig", SysConfigBefore.Uid, SysConfigBefore, SysConfigAfter, null, null);
+                        LogHelper.InsertSysLog("SysConfig", SysConfigBefore.Uid, SysConfigBefore, SysConfigAfter, null, null, _authHelper.LoginAdmin);
                     }
 
                     if (res != null)

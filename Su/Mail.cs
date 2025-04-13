@@ -1,104 +1,99 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Net.Mail;
+﻿using System.Net.Mail;
 using System.Collections;
-using System.Reflection;
 
 namespace Su
 {
     public class Mail
     {
-        public enum EmailType
-        {
+        //public enum EmailType
+        //{
+        //    註冊完成通知信 = 6,
+        //    忘記密碼通知信 = 7,
+        //    VIP即將失效通知信 = 8,
+        //    VVIP即將失效通知信 = 9,
+        //    即將升級為VIP通知信 = 10,
+        //    即將升級為VVIP通知信 = 11,
+        //    購物車未結帳通知信 = 12,
+        //    成為VIP通知信 = 13,
+        //    成為VVIP通知信 = 14,
+        //    瀏覽商品通知信 = 15,
+        //    點數即將失效通知信 = 16,
+        //    系統通知 = 17,
+        //    廠商合作 = 18,
+        //    嘗試入侵通知信 = 19,
+        //    無法發送註冊通知信 = 20,
+        //    訂單完成通知信 = 21,
+        //    密碼修改通知信 = 22
+        //}
 
-            註冊完成通知信 = 6,
-            忘記密碼通知信 = 7,
-            VIP即將失效通知信 = 8,
-            VVIP即將失效通知信 = 9,
-            即將升級為VIP通知信 = 10,
-            即將升級為VVIP通知信 = 11,
-            購物車未結帳通知信 = 12,
-            成為VIP通知信 = 13,
-            成為VVIP通知信 = 14,
-            瀏覽商品通知信 = 15,
-            點數即將失效通知信 = 16,
-            系統通知 = 17,
-            廠商合作 = 18,
-            嘗試入侵通知信 = 19,
-            無法發送註冊通知信 = 20,
-            訂單完成通知信 = 21,
-            密碼修改通知信 = 22
-        }
+        ///// <summary>
+        ///// 三個欄位，HOST;SMTP_USERNAME;SMTP_PASSWORD
+        ///// </summary>
+        //public static string AmazonSesSettings;
+        ///// <summary>
+        ///// 預設寄件者
+        ///// </summary>
+        //public static string DefaultMailFrom;
+        ///// <summary>
+        ///// 發信記錄的資料庫
+        ///// </summary>
+        //public static Su.Sql.DbId StatisticId = null;
 
-        /// <summary>
-        /// 三個欄位，HOST;SMTP_USERNAME;SMTP_PASSWORD
-        /// </summary>
-        public static string AmazonSesSettings;
-        /// <summary>
-        /// 預設寄件者
-        /// </summary>
-        public static string DefaultMailFrom;
-        /// <summary>
-        /// 發信記錄的資料庫
-        /// </summary>
-        public static Su.Sql.DbId StatisticId = null;
+        //public static bool SendMailWithAmazonSES(string toMails, string fromMail, string subject, string body, string cc = "", string bcc = "",
+        //    bool isBodyHtml = false, System.Text.Encoding bodyEncoding = null, System.Net.Mail.MailPriority priority = System.Net.Mail.MailPriority.Normal,
+        //    string pathFileName = "", ArrayList alPathFileName = null, string returnReceipt = "", Hashtable newAttachmentFilenames = null,
+        //    int emailTypeId = 1, bool isThrowException = false, bool isSkipLog = false)
+        //{
+        //    string[] SESParams = AmazonSesSettings.Trim().Split(';'); //DB.SysConfig.GetSysConfig("AmazonSES").Trim().Split(';');
+        //    // Amazon SES SMTP host name. This example uses the US West (Oregon) region.
+        //    //const String HOST = "email-smtp.us-west-1.amazonaws.com";
+        //    String HOST = SESParams[0];
 
-        public static bool SendMailWithAmazonSES(string toMails, string fromMail, string subject, string body, string cc = "", string bcc = "",
-            bool isBodyHtml = false, System.Text.Encoding bodyEncoding = null, System.Net.Mail.MailPriority priority = System.Net.Mail.MailPriority.Normal,
-            string pathFileName = "", ArrayList alPathFileName = null, string returnReceipt = "", Hashtable newAttachmentFilenames = null,
-            int emailTypeId = 1, bool isThrowException = false, bool isSkipLog = false)
-        {
-            string[] SESParams = AmazonSesSettings.Trim().Split(';'); //DB.SysConfig.GetSysConfig("AmazonSES").Trim().Split(';');
-            // Amazon SES SMTP host name. This example uses the US West (Oregon) region.
-            //const String HOST = "email-smtp.us-west-1.amazonaws.com";
-            String HOST = SESParams[0];
+        //    // Supply your SMTP credentials below. Note that your SMTP credentials are different from your AWS credentials.
+        //    //const String SMTP_USERNAME = "AKIAJTQ35NEV2UJLVE3A";  // Replace with your SMTP username. 
+        //    //const String SMTP_PASSWORD = "AuT2yoddKIrARlVwbh9h5d7j0jw/R2r2Hw9oVz07gbEM";  // Replace with your SMTP password.
+        //    String SMTP_USERNAME = SESParams[1];
+        //    String SMTP_PASSWORD = SESParams[2];
 
-            // Supply your SMTP credentials below. Note that your SMTP credentials are different from your AWS credentials.
-            //const String SMTP_USERNAME = "AKIAJTQ35NEV2UJLVE3A";  // Replace with your SMTP username. 
-            //const String SMTP_PASSWORD = "AuT2yoddKIrARlVwbh9h5d7j0jw/R2r2Hw9oVz07gbEM";  // Replace with your SMTP password.
-            String SMTP_USERNAME = SESParams[1];
-            String SMTP_PASSWORD = SESParams[2];
+        //    // The port you will connect to on the Amazon SES SMTP endpoint. We are choosing port 587 because we will use
+        //    // STARTTLS to encrypt the connection.
+        //    const int PORT = 587;
 
-            // The port you will connect to on the Amazon SES SMTP endpoint. We are choosing port 587 because we will use
-            // STARTTLS to encrypt the connection.
-            const int PORT = 587;
+        //    bool res = true;
 
-            bool res = true;
+        //    // Create an SMTP client with the specified host name and port.
+        //    using (System.Net.Mail.SmtpClient client = new System.Net.Mail.SmtpClient(HOST, PORT))
+        //    {
+        //        // Create a network credential with your SMTP user name and password.
+        //        client.Credentials = new System.Net.NetworkCredential(SMTP_USERNAME, SMTP_PASSWORD);
 
-            // Create an SMTP client with the specified host name and port.
-            using (System.Net.Mail.SmtpClient client = new System.Net.Mail.SmtpClient(HOST, PORT))
-            {
-                // Create a network credential with your SMTP user name and password.
-                client.Credentials = new System.Net.NetworkCredential(SMTP_USERNAME, SMTP_PASSWORD);
+        //        // Use SSL when accessing Amazon SES. The SMTP session will begin on an unencrypted connection, and then 
+        //        // the client will issue a STARTTLS command to upgrade to an encrypted connection using SSL.
+        //        client.EnableSsl = true;
 
-                // Use SSL when accessing Amazon SES. The SMTP session will begin on an unencrypted connection, and then 
-                // the client will issue a STARTTLS command to upgrade to an encrypted connection using SSL.
-                client.EnableSsl = true;
+        //        if (!isSkipLog && StatisticId != null)
+        //        {
+        //            //ToMail may be mtiple
+        //            string[] arrToMails = toMails.Split(';');
+        //            var insertSQL = "";
+        //            foreach (string tomail in arrToMails)
+        //            {
+        //                if (tomail.Length > 0 && tomail.IndexOf("@") != -1)
+        //                {
+        //                    //InsertSQL += " Insert into S3_Statistic..SESLog (EmailTypeId, Title, Receiver, Sender) values(" + EmailTypeId + ", '" + Subject.SqlStr() + "', '" + tomail.SqlStr() + "','" + FromMail.SqlStr() + "') ; ";
+        //                    insertSQL += " Insert into S3_Statistic..SESLog (EmailTypeId, Title, Receiver, Sender) values({EmailTypeId}, {Title}, {Receiver},{Sender}) ; "
+        //                        .ToMsSql(new { emailTypeId, Title = subject, Receiver = tomail, Sender = fromMail });
+        //                }
+        //            }
 
-                if (!isSkipLog && StatisticId != null)
-                {
-                    //ToMail may be mtiple
-                    string[] arrToMails = toMails.Split(';');
-                    var insertSQL = "";
-                    foreach (string tomail in arrToMails)
-                    {
-                        if (tomail.Length > 0 && tomail.IndexOf("@") != -1)
-                        {
-                            //InsertSQL += " Insert into S3_Statistic..SESLog (EmailTypeId, Title, Receiver, Sender) values(" + EmailTypeId + ", '" + Subject.SqlStr() + "', '" + tomail.SqlStr() + "','" + FromMail.SqlStr() + "') ; ";
-                            insertSQL += " Insert into S3_Statistic..SESLog (EmailTypeId, Title, Receiver, Sender) values({EmailTypeId}, {Title}, {Receiver},{Sender}) ; "
-                                .ToMsSql(new { emailTypeId, Title = subject, Receiver = tomail, Sender = fromMail });
-                        }
-                    }
+        //            Su.MsSql.ExecuteSql(insertSQL, StatisticId);
+        //        }
 
-                    Su.MsSql.ExecuteSql(insertSQL, StatisticId);
-                }
+        //        Su.Mail.SendMail(toMails, fromMail, subject, body, cc, isBodyHtml, bodyEncoding, client, bcc, priority, pathFileName, alPathFileName, returnReceipt, newAttachmentFilenames);
+        //    }
 
-                Su.Mail.SendMail(toMails, fromMail, subject, body, cc, isBodyHtml, bodyEncoding, client, bcc, priority, pathFileName, alPathFileName, returnReceipt, newAttachmentFilenames);
-            }
-
-            return res;
-        }
+        //    return res;
+        //}
 
 
 
