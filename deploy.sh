@@ -34,4 +34,5 @@ docker run -d \
 -v /var/project/cbct/data:/data \
 cbct-admin-f2e
 
+cd ../
 git rev-parse HEAD > for-nginx/version.txt
