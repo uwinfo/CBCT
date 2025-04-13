@@ -13,7 +13,7 @@
 ## Prerequisites
 
 - check github permission `ssh -vT git@github.com`
-- clone repo to local `git clone git@github.com:uwinfo/CBCT.git`
+- clone repo to local `sudo git clone git@github.com:uwinfo/CBCT.git /var/project`
 
 ## 安裝基本軟體
 
