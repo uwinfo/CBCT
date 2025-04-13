@@ -1,14 +1,14 @@
 git checkout -f;
 git fetch --all;
 git pull origin main;
-
+echo "start deployment" > for-nginx/status.txt
 docker build -t cbct-admin-api ./ --rm --no-cache
-
-if [ "$(sudo docker ps -q -f name=cbct-admin-api)" ]; then
-   sudo docker stop cbct-admin-api
+echo "build api complete" > for-nginx/status.txt
+if [ "$(docker ps -q -f name=cbct-admin-api)" ]; then
+   docker stop cbct-admin-api
 fi
-if [ "$(sudo docker container ls -f name=cbct-admin-api)" ]; then
-   sudo docker rm cbct-admin-api
+if [ "$(docker container ls -f name=cbct-admin-api)" ]; then
+   docker rm cbct-admin-api
 fi
 
 docker run -d \
@@ -18,14 +18,15 @@ docker run -d \
 -v /var/project/cbct/AdminApi/secrets.json:/app/secrets.json \
 -v /var/project/cbct/data:/data \
 cbct-admin-api
+echo "run api container complete" > for-nginx/status.txt
 
 cd admin-front && docker build -t cbct-admin-f2e ./ --rm --no-cache
-
-if [ "$(sudo docker ps -q -f name=cbct-admin-f2e)" ]; then
-   sudo docker stop cbct-admin-f2e
+echo "build f2e complete" > ../for-nginx/status.txt
+if [ "$(docker ps -q -f name=cbct-admin-f2e)" ]; then
+   docker stop cbct-admin-f2e
 fi
-if [ "$(sudo docker container ls -f name=cbct-admin-f2e)" ]; then
-   sudo docker rm cbct-admin-f2e
+if [ "$(docker container ls -f name=cbct-admin-f2e)" ]; then
+   docker rm cbct-admin-f2e
 fi
 
 docker run -d \
@@ -33,6 +34,6 @@ docker run -d \
 --name cbct-admin-f2e \
 -v /var/project/cbct/data:/data \
 cbct-admin-f2e
-
+echo "run f2e container complete" > ../for-nginx/status.txt
 cd ../
 git rev-parse HEAD > for-nginx/version.txt
