@@ -1,4 +1,4 @@
-﻿using Core.Constants;
+﻿using Core.Helpers;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Su;
@@ -10,7 +10,6 @@ namespace Core.Middlewares
     public class ErrorHandleMiddleware
     {
         private readonly RequestDelegate _next;
-
         public ErrorHandleMiddleware(RequestDelegate next)
         {
             _next = next;
@@ -37,7 +36,7 @@ namespace Core.Middlewares
         /// <param name="envName"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        private static Task HandleExceptionAsync(HttpContext context, Exception ex, string envName)
+        private Task HandleExceptionAsync(HttpContext context, Exception ex, string envName)
         {
             var code = HttpStatusCode.InternalServerError;
 
@@ -110,7 +109,7 @@ namespace Core.Middlewares
             else
             {
                 message = "發生錯誤，請連絡管理員";
-                Core.Helpers.LogHelper.AddExceptionLog("ErrorHandleMiddleware", ex, isThrowExctption: true);
+                LogHelper.AddExceptionLog("ErrorHandleMiddleware", ex, isThrowExctption: true);
             }
 
             var result = new

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Core.Helpers;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
 namespace AdminApi
@@ -10,8 +11,8 @@ namespace AdminApi
     [AddPermission(Core.Constants.AdminPermission.Login)]
     public class UniversalController : BaseApiController
     {
-        public UniversalController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext)
-            : base(commonClass, env, CBCTContext)
+        public UniversalController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, 
+            Core.Ef.CBCTContext CBCTContext, AuthHelper authHelper) : base(commonClass, env, CBCTContext, authHelper)
         {
         }
 

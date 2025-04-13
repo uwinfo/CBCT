@@ -7,7 +7,7 @@ using Su;
 
 namespace Core.Helpers
 {
-    public static class AdminUserHelper
+    public class AdminUserHelper
     {
         public static string GetManagerbyOtpConfirm(CBCTContext ct, string systemName, string uid, string otpConfirm)
         {
@@ -61,13 +61,9 @@ namespace Core.Helpers
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="_dbContext"></param>
-        /// <param name="uid"></param>
-        /// <exception cref="CustomException"></exception>
-        public static void Delete(CBCTContext _dbContext, string uid)
+        public static void Delete(CBCTContext _dbContext, string uid, string editedBy)
         {
             AdminUser? admin = _dbContext.AdminUsers.Find(uid);
-            string editedBy = AuthHelper.LoginUid!;
             if (admin == null)
             {
                 throw new CustomException("找不到資料");
@@ -83,11 +79,7 @@ namespace Core.Helpers
         /// <summary>
         /// SignUp & Update
         /// </summary>
-        /// <param name="dto"></param>
-        /// <param name="createdBy"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        public static Dtos.AdminUserDto Upsert(CBCTContext _dbContext, Dtos.AdminUserDto dto, string createdBy = "")
+        public static Dtos.AdminUserDto Upsert(CBCTContext _dbContext, Dtos.AdminUserDto dto, string adminUid)
         {
             var ex = dto.GetCustomException();
             if (string.IsNullOrEmpty(dto.Uid))
@@ -120,7 +112,6 @@ namespace Core.Helpers
 
             ex.TryThrowValidationException();
 
-            string adminUid = AuthHelper.LoginUid!;
             AdminUser? entity;
             if (string.IsNullOrEmpty(dto.Uid))
             {

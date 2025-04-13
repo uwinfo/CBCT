@@ -1,18 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using Microsoft.AspNetCore.Builder;
 using Su;
-using NPOI.SS.Formula.Functions;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.EntityFrameworkCore;
-using System.Net;
-using Microsoft.AspNetCore.Routing;
-//using Core.Helpers;
 
 namespace Core.Middlewares
 {
@@ -22,14 +9,11 @@ namespace Core.Middlewares
     public class CacheMiddleware
     {
         private readonly RequestDelegate _next;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="next"></param>
-        public CacheMiddleware(RequestDelegate next)
+        private readonly PgSqlCache _pgSqlCache;
+        public CacheMiddleware(RequestDelegate next, PgSqlCache pgSqlCache)
         {
             _next = next;
+            _pgSqlCache = pgSqlCache;
         }
 
         /// <summary>
@@ -41,7 +25,7 @@ namespace Core.Middlewares
         {
             await _next(context);
 
-            Su.PgSqlCache.StartUpdateTableCache();
+            _pgSqlCache.StartUpdateTableCache();
         }
     }
 }

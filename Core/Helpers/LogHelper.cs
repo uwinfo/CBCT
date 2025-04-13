@@ -24,9 +24,8 @@ namespace Core.Helpers
         /// <param name="beforeAdditionalObject"></param>
         /// <param name="afterAdditionalObject"></param>
         /// <returns></returns>
-        public static dynamic InsertSysLog(string tableName, string recordUid, object beforeObject, object? afterObject, object? beforeAdditionalObject = null, object? afterAdditionalObject = null)
+        public static dynamic InsertSysLog(string tableName, string recordUid, object beforeObject, object? afterObject, object? beforeAdditionalObject = null, object? afterAdditionalObject = null, Dtos.AdminUserDto? adminUser = null)
         {
-            var adminUser = AuthHelper.LoginAdmin;
             var creatorUid = adminUser == null ? "" : adminUser.Uid;
             var creatorName = adminUser == null ? "" : adminUser.Name;
 

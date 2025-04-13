@@ -19,3 +19,4 @@ AdminApi/secrets.json
 Www/secrets.json
 data
 for-nginx
+data/

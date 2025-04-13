@@ -9,7 +9,6 @@ namespace Core.Helpers
 {
     public static class DoctorHelper
     {
-
         public static Ef.Doctor? GetOne(CBCTContext _dbContext, string uid)
         {
             return _dbContext.Doctors.FirstOrDefault(x => x.DeletedAt == null && x.Uid == uid);

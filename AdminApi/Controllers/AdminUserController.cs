@@ -12,8 +12,8 @@ namespace AdminApi
     [AddPermission(Core.Constants.AdminPermission.UserManagement)]
     public class AdminUserController : BaseApiController
     {
-        public AdminUserController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext)
-            : base(commonClass, env, CBCTContext)
+        public AdminUserController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, 
+            Core.Ef.CBCTContext CBCTContext, AuthHelper authHelper) : base(commonClass, env, CBCTContext, authHelper)
         {
         }
 
@@ -45,7 +45,7 @@ namespace AdminApi
         [HttpPost]
         public ActionResult<dynamic> Upsert([FromBody] Core.Dtos.AdminUserDto dto)
         {
-            return AdminUserHelper.Upsert(_dbContext, dto);
+            return AdminUserHelper.Upsert(_dbContext, dto, _authHelper.LoginUid!);
         }
 
         /// <summary>
@@ -56,14 +56,14 @@ namespace AdminApi
         [HttpDelete]
         public void Delete([FromQuery] string uid)
         {
-            AdminUserHelper.Delete(_dbContext, uid);
+            AdminUserHelper.Delete(_dbContext, uid, _authHelper.LoginUid!);
         }
 
         [Route("get-auth")]
         [HttpGet]
         public dynamic? GetAuth()
         {
-            return Core.Helpers.AuthHelper.AdminPermissions;
+            return _authHelper.AdminPermissions;
         }
     }
 }

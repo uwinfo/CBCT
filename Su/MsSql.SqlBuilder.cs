@@ -1,5 +1,4 @@
-﻿using Su.Sql;
-using System.Data;
+﻿using System.Data;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -15,7 +14,7 @@ namespace Su
             private readonly List<string> LtAndCriteria = new List<string>();
             private readonly List<Column> LtSet = new List<Column>();
             private readonly List<string> LtLeftjoin = new List<string>();
-            private string orderBy = null;
+            private string? orderBy = null;
 
             /// <summary>
             /// Insert 時, 是否一定要有 CreatorId 和 CreateDate 這兩個欄位
@@ -45,7 +44,7 @@ namespace Su
             }
 
 
-            static string _NotDeletedSql = null;
+            static string? _NotDeletedSql = null;
             /// <summary>
             /// 可以在 startup 時, 自定 NotDeletedSql
             /// </summary>
@@ -142,13 +141,13 @@ namespace Su
                           BindingFlags.NonPublic |
                           BindingFlags.Instance;
 
-                List<string> fields = null;
+                List<string>? fields = null;
                 if (!string.IsNullOrEmpty(onlyFields))
                 {
                     fields = onlyFields.ToLower().Split(',').ToList();
                 }
 
-                List<string> notFields = null;
+                List<string>? notFields = null;
                 if (!string.IsNullOrEmpty(skipFields))
                 {
                     notFields = skipFields.ToLower().Split(',').ToList();
@@ -290,26 +289,26 @@ namespace Su
                 }
             }
 
-            public List<T> GetList<T>(string SelectFields = "*", int top = 0, Sql.DbId dbId = null)
-            {
-                var list = Dt(SelectFields, top, dbId).GetList<T>();
-                if (list.Count == 0)
-                {
-                    return list;
-                }
+            //public List<T> GetList<T>(string SelectFields = "*", int top = 0, Sql.DbId dbId = null)
+            //{
+            //    var list = Dt(SelectFields, top, dbId).GetList<T>();
+            //    if (list.Count == 0)
+            //    {
+            //        return list;
+            //    }
 
-                MethodInfo method = list[0].GetType().GetMethod("ClearModifiedFields");
-                if (method != null)
-                {
-                    foreach (var item in list)
-                    {
-                        method = item.GetType().GetMethod("ClearModifiedFields");
-                        method.Invoke(item, null);
-                    }
-                }
+            //    MethodInfo method = list[0].GetType().GetMethod("ClearModifiedFields");
+            //    if (method != null)
+            //    {
+            //        foreach (var item in list)
+            //        {
+            //            method = item.GetType().GetMethod("ClearModifiedFields");
+            //            method.Invoke(item, null);
+            //        }
+            //    }
 
-                return list;
-            }
+            //    return list;
+            //}
 
             /// <summary>
             /// PageDT 也會用
@@ -368,86 +367,86 @@ namespace Su
                 return ltRes.ToOneString(" ");
             }
 
-            public DataTable Select(string SelectFields = "*", int top = 0, Sql.DbId dbId = null, bool isNolock = true, int id = -1)
-            {
-                return Dt(SelectFields, top, dbId, isNolock, id);
-            }
+            //public DataTable Select(string SelectFields = "*", int top = 0, Sql.DbId dbId = null, bool isNolock = true, int id = -1)
+            //{
+            //    return Dt(SelectFields, top, dbId, isNolock, id);
+            //}
 
-            public DataTable Select(params ColumnName[] columnNames)
-            {
-                var SelectFields = columnNames.Select(x => x.ToString()).ToOneString(", ");
+            //public DataTable Select(params ColumnName[] columnNames)
+            //{
+            //    var SelectFields = columnNames.Select(x => x.ToString()).ToOneString(", ");
 
-                return Select(SelectFields);
-            }
+            //    return Select(SelectFields);
+            //}
 
-            public DataTable Dt(string SelectFields = "*", int top = 0, Sql.DbId dbId = null, bool isNolock = true, int id = -1)
-            {
-                string sql = SelectSql(SelectFields, top, isNolock, id);
+            //public DataTable Dt(string SelectFields = "*", int top = 0, Sql.DbId dbId = null, bool isNolock = true, int id = -1)
+            //{
+            //    string sql = SelectSql(SelectFields, top, isNolock, id);
 
-                //Su.Debug.WriteLine("SelectSql: ");
-                //Su.Debug.WriteLine(sql);
+            //    //Su.Debug.WriteLine("SelectSql: ");
+            //    //Su.Debug.WriteLine(sql);
 
-                return Su.MsSql.DtFromSql(sql, dbId);
-            }
+            //    return Su.MsSql.DtFromSql(sql, dbId);
+            //}
 
-            public IEnumerable<DataRow> Rows(string SelectFields = "*", int top = 0, Sql.DbId dbId = null, bool isNolock = true, int id = -1)
-            {
-                return Dt(SelectFields, top, dbId, isNolock, id).AsEnumerable();
-            }
+            //public IEnumerable<DataRow> Rows(string SelectFields = "*", int top = 0, Sql.DbId dbId = null, bool isNolock = true, int id = -1)
+            //{
+            //    return Dt(SelectFields, top, dbId, isNolock, id).AsEnumerable();
+            //}
 
-            public IEnumerable<T> ValuesOfField<T>(string fieldName, int top = 0, Sql.DbId dbId = null, bool isNolock = true, int id = -1)
-            {
-                if (fieldName.StartsWith("[") && fieldName.EndsWith("]"))
-                {
-                    fieldName = fieldName[1..^1];
-                }
-                return Rows(fieldName, top, dbId, isNolock, id).Select(r => r.Field<T>(fieldName));
-            }
+            //public IEnumerable<T> ValuesOfField<T>(string fieldName, int top = 0, Sql.DbId dbId = null, bool isNolock = true, int id = -1)
+            //{
+            //    if (fieldName.StartsWith("[") && fieldName.EndsWith("]"))
+            //    {
+            //        fieldName = fieldName[1..^1];
+            //    }
+            //    return Rows(fieldName, top, dbId, isNolock, id).Select(r => r.Field<T>(fieldName));
+            //}
 
-            public IEnumerable<T> ValuesOfField<T>(ColumnName columnName, int top = 0, Sql.DbId dbId = null, bool isNolock = true, int id = -1)
-            {
-                return ValuesOfField<T>(columnName.ToString(), top, dbId, isNolock, id);
-            }
+            //public IEnumerable<T> ValuesOfField<T>(ColumnName columnName, int top = 0, Sql.DbId dbId = null, bool isNolock = true, int id = -1)
+            //{
+            //    return ValuesOfField<T>(columnName.ToString(), top, dbId, isNolock, id);
+            //}
 
-            public DataRow FirstRow(int id = -1, Sql.DbId dbId = null)
-            {
-                if (id > 0)
-                {
-                    this.And("Id = ", id);
-                }
+            //public DataRow FirstRow(int id = -1, Sql.DbId dbId = null)
+            //{
+            //    if (id > 0)
+            //    {
+            //        this.And("Id = ", id);
+            //    }
 
-                var ret = Dt(top: 1, dbId: dbId);
-                return ret.Rows.Count == 0 ? null : ret.Rows[0];
-            }
+            //    var ret = Dt(top: 1, dbId: dbId);
+            //    return ret.Rows.Count == 0 ? null : ret.Rows[0];
+            //}
 
-            public T First<T>(int id = -1)
-            {
-                if (id > 0)
-                {
-                    this.And("Id = ", id);
-                }
+            //public T First<T>(int id = -1)
+            //{
+            //    if (id > 0)
+            //    {
+            //        this.And("Id = ", id);
+            //    }
 
-                var row = FirstRow();
-                if (row == null)
-                {
-                    return default;
-                }
+            //    var row = FirstRow();
+            //    if (row == null)
+            //    {
+            //        return default;
+            //    }
 
-                var item = row.CopyTo<T>();
+            //    var item = row.CopyTo<T>();
 
-                MethodInfo method = item.GetType().GetMethod("ClearModifiedFields");
-                if (method != null)
-                {
-                    method.Invoke(item, null);
-                }
+            //    MethodInfo method = item.GetType().GetMethod("ClearModifiedFields");
+            //    if (method != null)
+            //    {
+            //        method.Invoke(item, null);
+            //    }
 
-                return item;
-            }
+            //    return item;
+            //}
 
-            public void AddInsertSqlToQueue(int? creatorId = null, bool skipCreator = false, bool skipModifier = false)
-            {
-                AddSqlToQueue(InsertSql(creatorId, skipCreator, skipModifier));
-            }
+            //public void AddInsertSqlToQueue(int? creatorId = null, bool skipCreator = false, bool skipModifier = false)
+            //{
+            //    AddSqlToQueue(InsertSql(creatorId, skipCreator, skipModifier));
+            //}
 
             public string InsertSql(int? creatorId = null, bool skipCreator = false, bool skipModifier = false)
             {
@@ -501,76 +500,76 @@ namespace Su
             //}
 
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="dbc"></param>
-            /// <param name="timeout"></param>
-            /// <param name="creatorId">非 Null 時, 會同時設定CreatorId, ModifyDate, ModifierId, ModifyDate</param>
-            /// <param name="skipCreator"></param>
-            /// <param name="skipModifier"></param>
-            /// <returns></returns>
-            public int Insert(Sql.DbId dbId = null, int timeout = 0, int? creatorId = null, bool skipCreator = false, bool skipModifier = false)
-            {
-                return ExecuteSql(
-                    InsertSql(creatorId, skipCreator, skipModifier)
-                    , dbId, timeout, IsReturnIdentity: true);
-            }
+            ///// <summary>
+            ///// 
+            ///// </summary>
+            ///// <param name="dbc"></param>
+            ///// <param name="timeout"></param>
+            ///// <param name="creatorId">非 Null 時, 會同時設定CreatorId, ModifyDate, ModifierId, ModifyDate</param>
+            ///// <param name="skipCreator"></param>
+            ///// <param name="skipModifier"></param>
+            ///// <returns></returns>
+            //public int Insert(Sql.DbId dbId = null, int timeout = 0, int? creatorId = null, bool skipCreator = false, bool skipModifier = false)
+            //{
+            //    return ExecuteSql(
+            //        InsertSql(creatorId, skipCreator, skipModifier)
+            //        , dbId, timeout, IsReturnIdentity: true);
+            //}
 
-            public int Update(Sql.DbId dbId = null, int timeout = 0, int? modifierId = null, bool skipModifier = false)
-            {
-                return ExecuteSql(UpdateSql(modifierId, skipModifier), dbId, timeout);
-            }
+            //public int Update(Sql.DbId dbId = null, int timeout = 0, int? modifierId = null, bool skipModifier = false)
+            //{
+            //    return ExecuteSql(UpdateSql(modifierId, skipModifier), dbId, timeout);
+            //}
 
-            public const string QueueSqlKey = "SqlInQueue";
+            //public const string QueueSqlKey = "SqlInQueue";
 
-            public static void AddSqlToQueue(string sql)
-            {
-                if (CurrentContext.Current.Items[QueueSqlKey] == null)
-                {
-                    CurrentContext.Current.Items[QueueSqlKey] = new List<string>();
-                }
+            //public static void AddSqlToQueue(string sql)
+            //{
+            //    if (CurrentContext.Current.Items[QueueSqlKey] == null)
+            //    {
+            //        CurrentContext.Current.Items[QueueSqlKey] = new List<string>();
+            //    }
 
-                ((List<string>)CurrentContext.Current.Items[QueueSqlKey]).Add(sql);
-            }
+            //    ((List<string>)CurrentContext.Current.Items[QueueSqlKey]).Add(sql);
+            //}
 
-            /// <summary>
-            /// 產生 update sql , 並放入待執行的 Queue 中. 以便在 transaction 中執行.
-            /// </summary>
-            /// <param name="modifierId"></param>
-            /// <param name="skipModifier"></param>
-            public void AddUpdateSqlToQueue(int? modifierId = null, bool skipModifier = false)
-            {
-                AddSqlToQueue(UpdateSql(modifierId, skipModifier));
-            }
+            ///// <summary>
+            ///// 產生 update sql , 並放入待執行的 Queue 中. 以便在 transaction 中執行.
+            ///// </summary>
+            ///// <param name="modifierId"></param>
+            ///// <param name="skipModifier"></param>
+            //public void AddUpdateSqlToQueue(int? modifierId = null, bool skipModifier = false)
+            //{
+            //    AddSqlToQueue(UpdateSql(modifierId, skipModifier));
+            //}
 
-            /// <summary>
-            /// 在 Queue 中的 所有 SQL. 
-            /// </summary>
-            /// <returns></returns>
-            public static string QueuedSql()
-            {
-                if (CurrentContext.Current.Items[QueueSqlKey] == null)
-                {
-                    throw new Exception("Queue is null");
-                }
+            ///// <summary>
+            ///// 在 Queue 中的 所有 SQL. 
+            ///// </summary>
+            ///// <returns></returns>
+            //public static string QueuedSql()
+            //{
+            //    if (CurrentContext.Current.Items[QueueSqlKey] == null)
+            //    {
+            //        throw new Exception("Queue is null");
+            //    }
 
-                return ((List<string>)CurrentContext.Current.Items[QueueSqlKey]).ToOneString(";\r\n") + ";";
-            }
+            //    return ((List<string>)CurrentContext.Current.Items[QueueSqlKey]).ToOneString(";\r\n") + ";";
+            //}
 
-            /// <summary>
-            /// 同時執行 Queue 中的 sql, 這裡面會使用 TransactionScope
-            /// </summary>
-            public static void CommitQueuedSql()
-            {
-                using (var tran = new System.Transactions.TransactionScope())
-                {
-                    ExecuteSql(QueuedSql());
-                    tran.Complete();
-                }
+            ///// <summary>
+            ///// 同時執行 Queue 中的 sql, 這裡面會使用 TransactionScope
+            ///// </summary>
+            //public static void CommitQueuedSql()
+            //{
+            //    using (var tran = new System.Transactions.TransactionScope())
+            //    {
+            //        ExecuteSql(QueuedSql());
+            //        tran.Complete();
+            //    }
 
-                CurrentContext.Current.Items[QueueSqlKey] = null;
-            }
+            //    CurrentContext.Current.Items[QueueSqlKey] = null;
+            //}
 
 
 
@@ -600,14 +599,14 @@ namespace Su
                 return ltRes.ToOneString(" ");
             }
 
-            public int Delete()
-            {
-                List<string> ltRes = new List<string>();
-                ltRes.Add($"Delete {TableName.MsSqlObj()}");
-                BuildAndCriteria(ltRes);
+            //public int Delete()
+            //{
+            //    List<string> ltRes = new List<string>();
+            //    ltRes.Add($"Delete {TableName.MsSqlObj()}");
+            //    BuildAndCriteria(ltRes);
 
-                return Su.MsSql.ExecuteSql(ltRes.ToOneString(" "));
-            }
+            //    return Su.MsSql.ExecuteSql(ltRes.ToOneString(" "));
+            //}
 
             public static string SqlValue(object value)
             {
@@ -637,89 +636,89 @@ namespace Su
                 }
             }
 
-            public int GetCount(Sql.DbId dbId = null)
-            {
-                List<string> ltRes = new List<string>();
+            //public int GetCount(Sql.DbId dbId = null)
+            //{
+            //    List<string> ltRes = new List<string>();
 
-                ltRes.Add($"select count(*) from {TableName.MsSqlObj()}");
-                BuildAndCriteria(ltRes);
+            //    ltRes.Add($"select count(*) from {TableName.MsSqlObj()}");
+            //    BuildAndCriteria(ltRes);
 
-                return Convert.ToInt32(GetSingleValue(ltRes.ToOneString(" "), dbId));
-            }
+            //    return Convert.ToInt32(GetSingleValue(ltRes.ToOneString(" "), dbId));
+            //}
 
-            public PagedDt GetPagedDt(int pageNum, int pageSize = 20, Sql.DbId dbId = null, string fields = "*")
-            {
-                var oRes = new PagedDt();
-                oRes.TotalRecord = GetCount(dbId);
-                oRes.PageSize = pageSize;
+            //public PagedDt GetPagedDt(int pageNum, int pageSize = 20, Sql.DbId dbId = null, string fields = "*")
+            //{
+            //    var oRes = new PagedDt();
+            //    oRes.TotalRecord = GetCount(dbId);
+            //    oRes.PageSize = pageSize;
 
-                if (oRes.TotalRecord % pageSize == 0)
-                {
-                    oRes.TotalPage = oRes.TotalRecord / pageSize;
-                }
-                else
-                {
-                    oRes.TotalPage = (oRes.TotalRecord / pageSize) + 1;
-                }
+            //    if (oRes.TotalRecord % pageSize == 0)
+            //    {
+            //        oRes.TotalPage = oRes.TotalRecord / pageSize;
+            //    }
+            //    else
+            //    {
+            //        oRes.TotalPage = (oRes.TotalRecord / pageSize) + 1;
+            //    }
 
-                if (oRes.TotalPage < pageNum)
-                {
-                    pageNum = oRes.TotalPage;
-                }
+            //    if (oRes.TotalPage < pageNum)
+            //    {
+            //        pageNum = oRes.TotalPage;
+            //    }
 
-                if (oRes.TotalRecord == 0)
-                {
-                    //無資料固定回傳頁數1
-                    pageNum = 1;
-                }
+            //    if (oRes.TotalRecord == 0)
+            //    {
+            //        //無資料固定回傳頁數1
+            //        pageNum = 1;
+            //    }
 
-                oRes.CurrentPage = pageNum;
+            //    oRes.CurrentPage = pageNum;
 
-                if (oRes.TotalRecord > 0)
-                {
-                    oRes.Dt = PagerDT(oRes.CurrentPage, pageSize, dbId, fields);
-                }
+            //    if (oRes.TotalRecord > 0)
+            //    {
+            //        oRes.Dt = PagerDT(oRes.CurrentPage, pageSize, dbId, fields);
+            //    }
 
-                oRes.SetSQL(SelectSql(fields));
+            //    oRes.SetSQL(SelectSql(fields));
 
-                return oRes;
-            }
+            //    return oRes;
+            //}
 
-            /// <summary>
-            /// 把 PageSql 記錄下來, Debug 可能會用到
-            /// </summary>
-            public string PageSql = null;
-            protected DataTable PagerDT(int CurrentPage, int PageSize = 20, Sql.DbId dbId = null, string fields = "*")
-            {
-                int StartIndex = (CurrentPage - 1) * PageSize;
+            ///// <summary>
+            ///// 把 PageSql 記錄下來, Debug 可能會用到
+            ///// </summary>
+            //public string PageSql = null;
+            //protected DataTable PagerDT(int CurrentPage, int PageSize = 20, Sql.DbId dbId = null, string fields = "*")
+            //{
+            //    int StartIndex = (CurrentPage - 1) * PageSize;
 
-                if (string.IsNullOrWhiteSpace(orderBy))
-                {
-                    //一定要有 Order By 才能用 OFFSET, 就假設有 id 吧. 沒 id 又沒有 orderBy 就會丟 Exception 了.
-                    orderBy = "id";
-                }
+            //    if (string.IsNullOrWhiteSpace(orderBy))
+            //    {
+            //        //一定要有 Order By 才能用 OFFSET, 就假設有 id 吧. 沒 id 又沒有 orderBy 就會丟 Exception 了.
+            //        orderBy = "id";
+            //    }
 
-                PageSql = SelectSql(fields) + " OFFSET " + StartIndex + " ROWS FETCH NEXT " + PageSize + " ROWS ONLY"; // SQL2012 之後的版本
+            //    PageSql = SelectSql(fields) + " OFFSET " + StartIndex + " ROWS FETCH NEXT " + PageSize + " ROWS ONLY"; // SQL2012 之後的版本
 
-                DataTable dt = null;
-                try
-                {
-                    dt = DtFromSql(PageSql, dbId);
-                }
-                catch (Exception ex)
-                {
-                    if (ex.ToString().Contains("Incorrect syntax near 'OFFSET'."))
-                    {
-                        //SQL2008R2 之前的版本
-                        PageSql = "SELECT * " +
-                                  " FROM (" + SelectSql(SelectFields: fields + ", ROW_NUMBER() OVER (" + orderBy + ") AS x ") + ") AS tbl" +
-                                  " WHERE tbl.x Between " + StartIndex + " AND " + (StartIndex + PageSize);
+            //    DataTable dt = null;
+            //    try
+            //    {
+            //        dt = DtFromSql(PageSql, dbId);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        if (ex.ToString().Contains("Incorrect syntax near 'OFFSET'."))
+            //        {
+            //            //SQL2008R2 之前的版本
+            //            PageSql = "SELECT * " +
+            //                      " FROM (" + SelectSql(SelectFields: fields + ", ROW_NUMBER() OVER (" + orderBy + ") AS x ") + ") AS tbl" +
+            //                      " WHERE tbl.x Between " + StartIndex + " AND " + (StartIndex + PageSize);
 
-                        dt = DtFromSql(PageSql, dbId);
-                    }
-                }
-                return dt;
-            }
+            //            dt = DtFromSql(PageSql, dbId);
+            //        }
+            //    }
+            //    return dt;
+            //}
         }
     }
 }

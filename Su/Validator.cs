@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Dynamic;
-using System.Linq;
+﻿using System.Dynamic;
 using System.Text.RegularExpressions;
-using System.Web;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Su;
 
 namespace Su
 {
@@ -125,10 +118,10 @@ yahoo com
             return false;
         }
 
-        public void EmptyCheck(string inputKey, string displayName, Type type = Type._string, bool isEmptyOK = false)
-        {
-            Check(inputKey, displayName, type, true);
-        }
+        //public void EmptyCheck(string inputKey, string displayName, Type type = Type._string, bool isEmptyOK = false)
+        //{
+        //    Check(inputKey, displayName, type, true);
+        //}
 
         public string CheckFile(IFormFileCollection files, string displayName, string exts = "jpg,gif,png,jpeg,xls,xlsx,svg", int maxSize = 0, bool isEmptyOk = true)
         {
@@ -439,44 +432,44 @@ yahoo com
             }
         }
 
-        public string Check(string inputKey, string displayName, Type type = Type._string, bool isEmptyOK = false,
-            double? maxValue = null, double? minValue = null)
-        {
-            string action = "輸入";
-            if (inputKey.StartsWith("ddl"))
-            {
-                action = "選擇";
-            }
+        //public string Check(string inputKey, string displayName, Type type = Type._string, bool isEmptyOK = false,
+        //    double? maxValue = null, double? minValue = null)
+        //{
+        //    string action = "輸入";
+        //    if (inputKey.StartsWith("ddl"))
+        //    {
+        //        action = "選擇";
+        //    }
 
-            return CheckContent(Su.Wu.GetValue(inputKey), displayName, type, isEmptyOK, maxValue, minValue, action);
-        }
+        //    return CheckContent(Su.Wu.GetValue(inputKey), displayName, type, isEmptyOK, maxValue, minValue, action);
+        //}
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="inputKey"></param>
-        /// <param name="displayName"></param>
-        /// <param name="type"></param>
-        /// <param name="isEmptyOK"></param>
-        /// <param name="maxValue"></param>
-        /// <param name="minValue"></param>
-        /// <param name="action">不傳入時, 預設是 "輸入", 若 inputKey.StartsWith("ddl") 則為 "選擇"</param>
-        /// <param name="maxLength"></param>
-        /// <returns></returns>
-        public static string GetErrorMessageFromInput(string inputKey, string displayName, Type type = Type._string, bool isEmptyOK = false,
-            double? maxValue = null, double? minValue = null, string action = null, int maxLength = 0)
-        {
-            if (string.IsNullOrEmpty(action))
-            {
-                action = "輸入";
-                if (inputKey.StartsWith("ddl"))
-                {
-                    action = "選擇";
-                }
-            }
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="inputKey"></param>
+        ///// <param name="displayName"></param>
+        ///// <param name="type"></param>
+        ///// <param name="isEmptyOK"></param>
+        ///// <param name="maxValue"></param>
+        ///// <param name="minValue"></param>
+        ///// <param name="action">不傳入時, 預設是 "輸入", 若 inputKey.StartsWith("ddl") 則為 "選擇"</param>
+        ///// <param name="maxLength"></param>
+        ///// <returns></returns>
+        //public static string GetErrorMessageFromInput(string inputKey, string displayName, Type type = Type._string, bool isEmptyOK = false,
+        //    double? maxValue = null, double? minValue = null, string action = null, int maxLength = 0)
+        //{
+        //    if (string.IsNullOrEmpty(action))
+        //    {
+        //        action = "輸入";
+        //        if (inputKey.StartsWith("ddl"))
+        //        {
+        //            action = "選擇";
+        //        }
+        //    }
 
-            return GetErrorMessage(Su.Wu.GetValue(inputKey), displayName, type, isEmptyOK, maxValue, minValue, action, maxLength);
-        }
+        //    return GetErrorMessage(Su.Wu.GetValue(inputKey), displayName, type, isEmptyOK, maxValue, minValue, action, maxLength);
+        //}
 
         public static string GetErrorMessageFromObject(object obj, string fieldName, string displayName, Type type = Type._string, bool isEmptyOK = false,
             double? maxValue = null, double? minValue = null, string action = "輸入", int maxLength = 0)

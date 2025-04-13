@@ -13,8 +13,8 @@ namespace AdminApi
     [AddPermission(Core.Constants.AdminPermission.Admin)]
     public class AdminRoleController : BaseApiController
     {
-        public AdminRoleController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext)
-            : base(commonClass, env, CBCTContext)
+        public AdminRoleController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, 
+            Core.Ef.CBCTContext CBCTContext, AuthHelper authHelper) : base(commonClass, env, CBCTContext, authHelper)
         {
         }
 
@@ -69,7 +69,7 @@ namespace AdminApi
             ex.TryThrowValidationException();
 
             dto.Name = dto.Name!.Trim();
-            string adminUid = Core.Helpers.AuthHelper.LoginUid!;
+            string adminUid = _authHelper.LoginUid!;
             Core.Ef.AdminRole? entity;
             if (string.IsNullOrEmpty(dto.Uid))
             {
@@ -118,8 +118,8 @@ namespace AdminApi
                             PermissionUid = permissionList.Where(x => x.Code == permission).First().Uid,
                             CreatedAt = DateTime.Now,
                             ModifiedAt = DateTime.Now,
-                            CreatorUid = AuthHelper.LoginUid!,
-                            ModifierUid = AuthHelper.LoginUid!,
+                            CreatorUid = _authHelper.LoginUid!,
+                            ModifierUid = _authHelper.LoginUid!,
                         };
                         _dbContext.Add(menuPermission);
                     }

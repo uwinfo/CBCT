@@ -4,9 +4,7 @@ namespace Core.Middlewares
 {
     public class FileHandingMiddleware
     {
-
         private readonly RequestDelegate _next;
-
         public FileHandingMiddleware(RequestDelegate next)
         {
             _next = next;

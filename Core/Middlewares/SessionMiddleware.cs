@@ -8,13 +8,14 @@ namespace Core.Middlewares
     public class SessionMiddleware
     {
         private readonly RequestDelegate _next;
-
-        public SessionMiddleware(RequestDelegate next)
+        private readonly SystemHelper _systemHelper;
+        public SessionMiddleware(RequestDelegate next, SystemHelper systemHelper)
         {
             _next = next;
+            _systemHelper = systemHelper;
         }
 
-        private static readonly Dictionary<string, string> RunningSession = [];
+        private readonly Dictionary<string, string> RunningSession = [];
 
         public async Task InvokeAsync(HttpContext context)
         {
@@ -28,26 +29,26 @@ namespace Core.Middlewares
             try
             {
                 //處理必需排隊的 Request, 例如寫入訂單
-                if (isSequence && ! string.IsNullOrEmpty(SystemHelper.ComputerUid))
+                if (isSequence && ! string.IsNullOrEmpty(_systemHelper.ComputerUid))
                 {
-                    lock (Su.LockerProvider.GetLocker("Session_" + SystemHelper.ComputerUid))
+                    lock (Su.LockerProvider.GetLocker("Session_" + _systemHelper.ComputerUid))
                     {
                         //暫時不處理多主機的問題, 未來多主機要用 DB 管控
                         var waitCount = 0;
                         var waitAt = DateTime.Now;
-                        while (RunningSession.ContainsKey(SystemHelper.ComputerUid) && waitCount < 2000) //最多等 20 秒
+                        while (RunningSession.ContainsKey(_systemHelper.ComputerUid) && waitCount < 2000) //最多等 20 秒
                         {
                             System.Threading.Thread.Sleep(10);
                             waitCount++;
                         }
 
-                        if (RunningSession.ContainsKey(SystemHelper.ComputerUid))
+                        if (RunningSession.ContainsKey(_systemHelper.ComputerUid))
                         {
                             Su.FileLogger.AddDailyLog("session", $"SessionMiddleware, Wait for {(DateTime.Now - waitAt).TotalMilliseconds}");
                         }
                         else
                         {
-                            RunningSession.Add(SystemHelper.ComputerUid, currentProcessGuid);
+                            RunningSession.Add(_systemHelper.ComputerUid, currentProcessGuid);
                         }
                     }
                 }
@@ -60,9 +61,9 @@ namespace Core.Middlewares
             }
             finally
             {
-                if (isSequence && !string.IsNullOrEmpty(SystemHelper.ComputerUid) && RunningSession.ContainsKey(SystemHelper.ComputerUid))
+                if (isSequence && !string.IsNullOrEmpty(_systemHelper.ComputerUid) && RunningSession.ContainsKey(_systemHelper.ComputerUid))
                 {
-                    RunningSession.Remove(SystemHelper.ComputerUid);
+                    RunningSession.Remove(_systemHelper.ComputerUid);
                 }
             }
         }
@@ -75,8 +76,4 @@ namespace Core.Middlewares
             return builder.UseMiddleware<SessionMiddleware>();
         }
     }
-
-
-
-
 }

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Su.StringExtension;
-
-namespace Su
+﻿namespace Su
 {
     public partial class MsSql
     {
@@ -24,65 +17,65 @@ namespace Su
                 return TableNameInDb.MsSqlBuilder();
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="onlyFields"></param>
-            /// <param name="skipFields"></param>
-            /// <param name="dbc"></param>
-            /// <param name="timeout"></param>
-            /// <param name="CreatorId"></param>
-            /// <returns>回傳 Identity</returns>
-            public int Add(string onlyFields = null, string skipFields = "Id", Sql.DbId dbId = null, int timeout = 0, int? CreatorId = null)
-            {
-                if (onlyFields == null)
-                {
-                    onlyFields = string.Join(",", ModifiedFields);
-                }
-                else
-                {
-                    //取交集
-                    onlyFields = string.Join(",", onlyFields.Split(',').Where(x => ModifiedFields.Contains(x)));
-                }
+            ///// <summary>
+            ///// 
+            ///// </summary>
+            ///// <param name="onlyFields"></param>
+            ///// <param name="skipFields"></param>
+            ///// <param name="dbc"></param>
+            ///// <param name="timeout"></param>
+            ///// <param name="CreatorId"></param>
+            ///// <returns>回傳 Identity</returns>
+            //public int Add(string onlyFields = null, string skipFields = "Id", Sql.DbId dbId = null, int timeout = 0, int? CreatorId = null)
+            //{
+            //    if (onlyFields == null)
+            //    {
+            //        onlyFields = string.Join(",", ModifiedFields);
+            //    }
+            //    else
+            //    {
+            //        //取交集
+            //        onlyFields = string.Join(",", onlyFields.Split(',').Where(x => ModifiedFields.Contains(x)));
+            //    }
 
-                var b = GetBuilder()
-                    .SetObject(this, onlyFields: onlyFields, skipFields: skipFields);
+            //    var b = GetBuilder()
+            //        .SetObject(this, onlyFields: onlyFields, skipFields: skipFields);
 
-                if (CreatorId != null)
-                {
-                    b.SetObject(new
-                    {
-                        CreatorId,
-                        CreateDate = DateTime.Now,
-                        ModifierId = CreatorId,
-                        ModifyDate = DateTime.Now
-                    });
-                }
+            //    if (CreatorId != null)
+            //    {
+            //        b.SetObject(new
+            //        {
+            //            CreatorId,
+            //            CreateDate = DateTime.Now,
+            //            ModifierId = CreatorId,
+            //            ModifyDate = DateTime.Now
+            //        });
+            //    }
 
-                return b.Insert(dbId, timeout);
-            }
+            //    return b.Insert(dbId, timeout);
+            //}
 
-            /// <summary>
-            /// obj 必需有 Id 欄位, 注意大小寫.
-            /// </summary>
-            /// <param name="onlyFields"></param>
-            /// <param name="IdFieldName"></param>
-            /// <param name="dbc"></param>
-            /// <param name="timeout"></param>
-            /// <param name="ModifierId"></param>
-            /// <param name="skipFields"></param>
-            /// <returns></returns>
-            public int Update(string onlyFields = null, string IdFieldName = "Id", Sql.DbId dbId = null, int timeout = 0, int? ModifierId = null, string skipFields = null)
-            {
-                try
-                {
-                    return GetUpdateBuilder(onlyFields, IdFieldName, skipFields).Update(dbId, timeout, ModifierId);
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("IdFieldName: " + IdFieldName + ", " + ex.FullInfo());
-                }
-            }
+            ///// <summary>
+            ///// obj 必需有 Id 欄位, 注意大小寫.
+            ///// </summary>
+            ///// <param name="onlyFields"></param>
+            ///// <param name="IdFieldName"></param>
+            ///// <param name="dbc"></param>
+            ///// <param name="timeout"></param>
+            ///// <param name="ModifierId"></param>
+            ///// <param name="skipFields"></param>
+            ///// <returns></returns>
+            //public int Update(string onlyFields = null, string IdFieldName = "Id", Sql.DbId dbId = null, int timeout = 0, int? ModifierId = null, string skipFields = null)
+            //{
+            //    try
+            //    {
+            //        return GetUpdateBuilder(onlyFields, IdFieldName, skipFields).Update(dbId, timeout, ModifierId);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        throw new Exception("IdFieldName: " + IdFieldName + ", " + ex.FullInfo());
+            //    }
+            //}
 
             /// <summary>
             /// 物件轉為 Update Builder, 再進行 update.

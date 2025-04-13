@@ -5,6 +5,7 @@ using Core.Helpers;
 using Google.Authenticator;
 using System.Net;
 using Su;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace AdminApi
 {
@@ -14,8 +15,8 @@ namespace AdminApi
     [Route("admin-auth")]
     public class AdminAuthController : BaseApiController
     {
-        public AdminAuthController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext) 
-            : base(commonClass, env, CBCTContext)
+        public AdminAuthController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env,
+            Core.Ef.CBCTContext CBCTContext, AuthHelper authHelper) : base(commonClass, env, CBCTContext, authHelper)
         {
         }
 
@@ -80,7 +81,7 @@ namespace AdminApi
         [AddPermission(AdminPermission.UnLimited)]
         public object IsLogIn()
         {
-            return Core.Helpers.AuthHelper.IsLogin;
+            return _authHelper.IsLogin;
         }
 
         [HttpGet("log-out")]
@@ -88,7 +89,7 @@ namespace AdminApi
         public dynamic LogOut()
         {
             //await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            Core.Helpers.AuthHelper.LogOut();
+            _authHelper.LogOut();
             return true;
         }
 
@@ -139,7 +140,7 @@ namespace AdminApi
                     }
                 }
 
-                AuthHelper.AdminLogIn(admin.Uid, _dbContext);
+                _authHelper.AdminLogIn(admin.Uid, _dbContext);
                 return new { res = true };
             }
             else
@@ -167,16 +168,15 @@ namespace AdminApi
             {
                 // Cookie 存在
                 Su.Debug.AppendLog("myCookie: " + myCookie);
-                return Ok(myCookie);
             }
             else
             {
                 // Cookie 不存在
                 Su.Debug.AppendLog("myCookie: Cookie 不存在.");
-                return NotFound();
             }
             //Core.Helpers.LogHelper.AddExceptionLog("ErrorHandleMiddleware", new Exception("TEST"), isThrowExctption: true);
             //return Ok();
+            return _authHelper.IsLogin;
         }
     }
 }

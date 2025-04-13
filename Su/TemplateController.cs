@@ -1,13 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using System;
-using System.Collections.Generic;
 using System.Runtime.Caching;
-using System.Linq;
-using System.Security.Claims;
-using MathNet.Numerics.Interpolation;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Su
 {    
@@ -120,103 +113,103 @@ namespace Su
             }
         }
 
-        /// <summary>
-        /// 設為 true 時, 不會輸出 Template 的內容.
-        /// </summary>
-        public bool IsError = false;
-        [NonAction]
-        public void WriteError(string Message)
-        {
-            IsError = true;
-            Su.Wu.WriteText(Message);
-        }
+        ///// <summary>
+        ///// 設為 true 時, 不會輸出 Template 的內容.
+        ///// </summary>
+        //public bool IsError = false;
+        //[NonAction]
+        //public void WriteError(string Message)
+        //{
+        //    IsError = true;
+        //    Su.Wu.WriteText(Message);
+        //}
 
-        private IActionResult _ReturnResult = null;
-        [NonAction]
-        public void ReturnResult(IActionResult result)
-        {
-            IsError = true;
-            this._ReturnResult = result;
-        }
+        //private IActionResult _ReturnResult = null;
+        //[NonAction]
+        //public void ReturnResult(IActionResult result)
+        //{
+        //    IsError = true;
+        //    this._ReturnResult = result;
+        //}
 
-        public bool IsWriteMaster = true;
+        //public bool IsWriteMaster = true;
 
-        public override void OnActionExecuted(ActionExecutedContext filterContext)
-        {
-            var s = DateTime.Now;
+        //public override void OnActionExecuted(ActionExecutedContext filterContext)
+        //{
+        //    var s = DateTime.Now;
 
-            try
-            {
-                if (filterContext.Result != null && filterContext.Result.GetType() == typeof(RedirectResult))
-                {
-                    return;
-                }
+        //    try
+        //    {
+        //        if (filterContext.Result != null && filterContext.Result.GetType() == typeof(RedirectResult))
+        //        {
+        //            return;
+        //        }
 
-                if (IsError)
-                {
-                    filterContext.Result = _ReturnResult;
-                    return;
-                }
+        //        if (IsError)
+        //        {
+        //            filterContext.Result = _ReturnResult;
+        //            return;
+        //        }
 
-                base.OnActionExecuted(filterContext);
+        //        base.OnActionExecuted(filterContext);
 
-                if(this.MasterTemplate != null)
-                {
-                    AutoCssAndScript();
+        //        if(this.MasterTemplate != null)
+        //        {
+        //            AutoCssAndScript();
 
-                    if (HeaderTemplate != null)
-                    {
-                        this.MasterTemplate.ReplaceString("<!--Header-->", this.HeaderTemplate.ResultAfterBuildAll_TRIM);
-                    }
-                    if (ContentTemplate != null)
-                    {
-                        this.MasterTemplate.ReplaceString("<!--Content-->", this.ContentTemplate.ResultAfterBuildAll_TRIM);
-                    }
-                    if (FinalScriptTemplate != null)
-                    {
-                        this.MasterTemplate.ReplaceString("<!--FinalScript-->", this.FinalScriptTemplate.ResultAfterBuildAll_TRIM);
-                    }
+        //            if (HeaderTemplate != null)
+        //            {
+        //                this.MasterTemplate.ReplaceString("<!--Header-->", this.HeaderTemplate.ResultAfterBuildAll_TRIM);
+        //            }
+        //            if (ContentTemplate != null)
+        //            {
+        //                this.MasterTemplate.ReplaceString("<!--Content-->", this.ContentTemplate.ResultAfterBuildAll_TRIM);
+        //            }
+        //            if (FinalScriptTemplate != null)
+        //            {
+        //                this.MasterTemplate.ReplaceString("<!--FinalScript-->", this.FinalScriptTemplate.ResultAfterBuildAll_TRIM);
+        //            }
 
-                    this.MasterTemplate
-                        .ReplaceString("<!--Title-->", this.Title)
-                        .ReplaceString("<!--Description-->", this.Description)
-                        .ReplaceString("{PhotoHost}", PhotoHost)
-                        ;
+        //            this.MasterTemplate
+        //                .ReplaceString("<!--Title-->", this.Title)
+        //                .ReplaceString("<!--Description-->", this.Description)
+        //                .ReplaceString("{PhotoHost}", PhotoHost)
+        //                ;
 
-                    var diff = (DateTime.Now - s).TotalMilliseconds;
-                    Su.Debug.WriteLine("total Time: " + diff);
+        //            var diff = (DateTime.Now - s).TotalMilliseconds;
+        //            Su.Debug.WriteLine("total Time: " + diff);
 
-                    //Su.FileLogger.AddOneDayLog("performance", "TemplateController OnActionExecuted run time: " + diff + " ms");
+        //            //Su.FileLogger.AddOneDayLog("performance", "TemplateController OnActionExecuted run time: " + diff + " ms");
 
-                    filterContext.Result = Content(this.MasterTemplate.result, new Microsoft.Net.Http.Headers.MediaTypeHeaderValue("text/html"));
-                }
-            }
-            catch (Exception ex)
-            {
-                filterContext.Result = Content(ex.ToString() + ", " + ex.StackTrace, new Microsoft.Net.Http.Headers.MediaTypeHeaderValue("text/html"));
-            }
+        //            filterContext.Result = Content(this.MasterTemplate.result, new Microsoft.Net.Http.Headers.MediaTypeHeaderValue("text/html"));
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        filterContext.Result = Content(ex.ToString() + ", " + ex.StackTrace, new Microsoft.Net.Http.Headers.MediaTypeHeaderValue("text/html"));
+        //    }
 
-            base.OnActionExecuted(filterContext);
-        }
+        //    base.OnActionExecuted(filterContext);
+        //}
 
-        public static string WwwFileRoot { get; set; } = "";
+        //public static string WwwFileRoot { get; set; } = "";
 
-        [NonAction]
-        public void AutoCssAndScript()
-        {
-            if(MasterTemplate == null)
-            {
-                return;
-            }
+        //[NonAction]
+        //public void AutoCssAndScript()
+        //{
+        //    if(MasterTemplate == null)
+        //    {
+        //        return;
+        //    }
 
-            string assetsFileRoot = WwwFileRoot.AddPath("assets");
+        //    string assetsFileRoot = WwwFileRoot.AddPath("assets");
 
-            string mergedCss = GetMergedFile(assetsFileRoot.AddPath("css", "auto"), assetsFileRoot.AddPath("css", "merged_css"), ".css");
-            MasterTemplate.ReplaceString("<!--AutoCss-->", $"<link href='/assets/css/merged_css/{mergedCss}' rel='stylesheet'>");
+        //    string mergedCss = GetMergedFile(assetsFileRoot.AddPath("css", "auto"), assetsFileRoot.AddPath("css", "merged_css"), ".css");
+        //    MasterTemplate.ReplaceString("<!--AutoCss-->", $"<link href='/assets/css/merged_css/{mergedCss}' rel='stylesheet'>");
 
-            string mergedJs = GetMergedFile(assetsFileRoot.AddPath("js", "auto"), assetsFileRoot.AddPath("js", "merged_js"), ".js");
-            MasterTemplate.ReplaceString("<!--AutoJs-->", $"<script src='/assets/js/merged_js/{mergedJs}'></script>");
-        }
+        //    string mergedJs = GetMergedFile(assetsFileRoot.AddPath("js", "auto"), assetsFileRoot.AddPath("js", "merged_js"), ".js");
+        //    MasterTemplate.ReplaceString("<!--AutoJs-->", $"<script src='/assets/js/merged_js/{mergedJs}'></script>");
+        //}
 
         /// <summary>
         /// 

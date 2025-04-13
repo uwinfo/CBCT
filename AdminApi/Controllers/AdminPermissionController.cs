@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using System.Net;
 using Su;
+using Core.Helpers;
 
 namespace AdminApi
 {
@@ -12,8 +13,8 @@ namespace AdminApi
     [AddPermission(Core.Constants.AdminPermission.Admin)]
     public class AdminPermissionController : BaseApiController
     {
-        public AdminPermissionController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env, Core.Ef.CBCTContext CBCTContext)
-            : base(commonClass, env, CBCTContext)
+        public AdminPermissionController(IOptions<Core.Models.AdminAppSettings.CommonClass> commonClass, IWebHostEnvironment env,
+            Core.Ef.CBCTContext CBCTContext, AuthHelper authHelper) : base(commonClass, env, CBCTContext, authHelper)
         {
         }
 
@@ -73,7 +74,7 @@ namespace AdminApi
             }
             ex.TryThrowValidationException();
 
-            string adminUid = Core.Helpers.AuthHelper.LoginUid!;
+            string adminUid = _authHelper.LoginUid!;
             Core.Ef.AdminPermission? entity;
             if (string.IsNullOrEmpty(dto.Uid))
             {

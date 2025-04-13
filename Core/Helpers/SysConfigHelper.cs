@@ -6,13 +6,13 @@ using Su;
 
 namespace Core.Helpers
 {
-    public static class SysConfigHelper
+    public class SysConfigHelper
     {
         /// <summary>
         /// 取得全部參數的字典
         /// </summary>
         /// <returns></returns>
-        internal static Dictionary<string, string> GetDictionaryFromDb()
+        static internal Dictionary<string, string> GetDictionaryFromDb()
         {
             var ct = Core.Ef.CBCTContext.NewDbContext;
 
@@ -38,7 +38,7 @@ namespace Core.Helpers
         /// 取得單一資料
         /// </summary>
         /// <returns></returns>
-        public static Core.Ef.SysConfig GetOne(CBCTContext _dbContext, string uid)
+        public static  Core.Ef.SysConfig GetOne(CBCTContext _dbContext, string uid)
         {
             var data = _dbContext.SysConfigs.FirstOrDefault(x => x.Uid == uid);
             if (data == null)
@@ -78,7 +78,7 @@ namespace Core.Helpers
         /// <param name="_dbContext"></param>
         /// <param name="dto"></param>
         /// <returns></returns>
-        public static dynamic AddOneData(CBCTContext _dbContext, Dtos.UpsertSysConfig dto)
+        public static dynamic AddOneData(CBCTContext _dbContext, Dtos.UpsertSysConfig dto, Dtos.AdminUserDto? adminUser)
         {
             var ex = dto.GetCustomException();
 
@@ -91,7 +91,6 @@ namespace Core.Helpers
 
             CheckForDuplicate(_dbContext, dto, ex);
 
-            var adminUser = AuthHelper.LoginAdmin;
             var newData = dto.CopyTo<SysConfig>();
             newData.Uid = Guid.NewGuid().ToString();
             newData.CreatedAt = DateTime.Now;
@@ -112,7 +111,7 @@ namespace Core.Helpers
         /// <param name="_dbContext"></param>
         /// <param name="dto"></param>
         /// <returns></returns>
-        public static dynamic UpdateOneData(CBCTContext _dbContext, Dtos.UpsertSysConfig dto)
+        public static dynamic UpdateOneData(CBCTContext _dbContext, Dtos.UpsertSysConfig dto, Dtos.AdminUserDto? adminUser)
         {
             var ex = dto.GetCustomException();
 
@@ -130,8 +129,6 @@ namespace Core.Helpers
             {
                 throw new CustomException(HttpStatusCode.NotFound, "查無此資料");
             }
-
-            var adminUser = AuthHelper.LoginAdmin;
 
             dto.CopyTo(data, skips: "Uid");
             data.ModifiedAt = DateTime.Now;
